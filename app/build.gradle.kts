@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.20-Beta1"
 }
 
 android {
@@ -50,6 +51,17 @@ android {
 }
 
 dependencies {
+    val supabase_version = "3.0.3"
+    val ktor_version = "3.0.3"
+
+    implementation ("io.github.jan-tennert.supabase:postgrest-kt:$supabase_version")
+    implementation ("io.github.jan-tennert.supabase:storage-kt:$supabase_version")
+    implementation ("io.github.jan-tennert.supabase:auth-kt:$supabase_version")
+    implementation ("io.github.jan-tennert.supabase:gotrue-kt:$supabase_version")
+    implementation ("io.github.jan-tennert.supabase:realtime-kt:$supabase_version")
+    implementation ("io.ktor:ktor-client-android:$ktor_version")
+    implementation ("io.ktor:ktor-client-core:$ktor_version")
+    implementation ("io.ktor:ktor-utils:$ktor_version")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
