@@ -1,12 +1,13 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose.compiler)
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.0"
 }
 
 android {
     namespace = "dev.cc231054.dwitter_ccl3"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "dev.cc231054.dwitter_ccl3"
@@ -57,7 +58,6 @@ dependencies {
     implementation ("io.github.jan-tennert.supabase:postgrest-kt:$supabase_version")
     implementation ("io.github.jan-tennert.supabase:storage-kt:$supabase_version")
     implementation ("io.github.jan-tennert.supabase:auth-kt:$supabase_version")
-    implementation ("io.github.jan-tennert.supabase:gotrue-kt:$supabase_version")
     implementation ("io.github.jan-tennert.supabase:realtime-kt:$supabase_version")
     implementation ("io.ktor:ktor-client-android:$ktor_version")
     implementation ("io.ktor:ktor-client-core:$ktor_version")
