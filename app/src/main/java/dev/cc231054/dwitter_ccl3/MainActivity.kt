@@ -17,9 +17,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Dwitter_CCL3Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    UserList(Modifier.padding(innerPadding))
-                }
+                MainScreen()
             }
         }
     }

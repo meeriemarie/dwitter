@@ -64,6 +64,8 @@ dependencies {
     implementation ("io.ktor:ktor-utils:$ktor_version")
     implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 
+    implementation("androidx.navigation:navigation-compose:2.8.5")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
