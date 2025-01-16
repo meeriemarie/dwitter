@@ -52,8 +52,10 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.runtime.livedata)
     val supabase_version = "3.0.3"
     val ktor_version = "3.0.3"
+    val lifecycle_version = "2.8.7"
 
     implementation ("io.github.jan-tennert.supabase:postgrest-kt:$supabase_version")
     implementation ("io.github.jan-tennert.supabase:storage-kt:$supabase_version")
@@ -65,6 +67,9 @@ dependencies {
     implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 
     implementation("androidx.navigation:navigation-compose:2.8.5")
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:$lifecycle_version")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
