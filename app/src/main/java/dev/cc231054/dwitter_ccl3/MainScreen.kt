@@ -12,7 +12,6 @@ import androidx.navigation.compose.rememberNavController
 import dev.cc231054.dwitter_ccl3.ui.BottomNavigationBar
 import dev.cc231054.dwitter_ccl3.ui.ContentScreen
 import dev.cc231054.dwitter_ccl3.ui.Screens
-import dev.cc231054.dwitter_ccl3.ui.UserList
 import dev.cc231054.dwitter_ccl3.ui.logInScreen
 
 @Composable
