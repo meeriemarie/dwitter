@@ -33,7 +33,7 @@ class UserViewModel: ViewModel() {
     init {
         viewModelScope.launch {
             try {
-                val fetchedUsers = supabase.from("users")
+                val fetchedUsers = supabase.from("profiles")
                     .select()
                     .decodeList<UserEntity>()
                 _users.value = fetchedUsers

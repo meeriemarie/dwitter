@@ -16,14 +16,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun ContentScreen(modifier: Modifier = Modifier) {
-    UserList(modifier = modifier)
+    UserList()
 }
 
 @Composable
-fun UserList(
-    modifier: Modifier = Modifier,
-    viewModel: UserViewModel = viewModel()
-) {
+fun UserList(viewModel: UserViewModel = viewModel()) {
     val users by viewModel.users.observeAsState(emptyList())
     LazyColumn {
         items(users, key = { user -> user.id},) { user ->

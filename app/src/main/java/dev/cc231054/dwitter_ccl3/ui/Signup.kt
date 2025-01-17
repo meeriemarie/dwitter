@@ -1,5 +1,6 @@
 package dev.cc231054.dwitter_ccl3.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -32,7 +33,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun signUpScreen(modifier: Modifier = Modifier, viewModel: UserViewModel = viewModel()) {
+fun signUpScreen(modifier: Modifier = Modifier,
+                 viewModel: UserViewModel = viewModel(),
+                 navigateToLogin: () -> Unit,
+                 navigateToApp: () -> Unit
+) {
     val userState by viewModel.userState
     val context = LocalContext.current
 
@@ -43,9 +48,6 @@ fun signUpScreen(modifier: Modifier = Modifier, viewModel: UserViewModel = viewM
     var userUsername by remember { mutableStateOf("") }
     var currentUserState by remember { mutableStateOf("") }
 
-    LaunchedEffect(Unit) {
-        viewModel.isUserLoggedIn(context)
-    }
 
     Column(modifier = modifier
         .fillMaxSize()
@@ -105,24 +107,33 @@ fun signUpScreen(modifier: Modifier = Modifier, viewModel: UserViewModel = viewM
                 userEmail,
                 userPassword,
                 userName,
-                userUsername,
-                userAvatar
+                userAvatar,
+                userUsername
             )
         }) {
             Text(text = "Sign Up")
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(text = "Already have an account?")
+
+        Button(onClick = navigateToLogin) {
+            Text(text = "Log In")
+        }
+
         when(userState) {
             is UserState.Loading -> {
-                LoadingComponent()
             }
             is UserState.Success -> {
                 val message = (userState as UserState.Success).message
                 currentUserState = message
+                Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
+                navigateToApp()
             }
             is UserState.Error -> {
                 val message = (userState as UserState.Error).message
                 currentUserState = message
+                Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
             }
         }
 
