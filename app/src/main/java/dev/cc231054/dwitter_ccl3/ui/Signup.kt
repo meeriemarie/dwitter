@@ -32,12 +32,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun logInScreen(modifier: Modifier = Modifier, viewModel: UserViewModel = viewModel()) {
+fun signUpScreen(modifier: Modifier = Modifier, viewModel: UserViewModel = viewModel()) {
     val userState by viewModel.userState
     val context = LocalContext.current
 
     var userEmail by remember { mutableStateOf("") }
     var userPassword by remember { mutableStateOf("") }
+    var userAvatar by remember { mutableStateOf("") }
+    var userName by remember { mutableStateOf("") }
+    var userUsername by remember { mutableStateOf("") }
     var currentUserState by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
@@ -69,20 +72,44 @@ fun logInScreen(modifier: Modifier = Modifier, viewModel: UserViewModel = viewMo
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Button(onClick = {
-            viewModel.logIn(
-                context,
-                userEmail,
-                userPassword
-            )
-        }) {
-            Text(text = "Log In")
-        }
+        TextField(
+            value = userName,
+            onValueChange = {userName= it},
+            placeholder = { Text(text = "Enter your Name") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        TextField(
+            value = userUsername,
+            onValueChange = {userUsername= it},
+            placeholder = { Text(text = "Enter your username") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        TextField(
+            value = userAvatar,
+            onValueChange = {userAvatar= it},
+            placeholder = { Text(text = "Enter your avatar url") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         Button(onClick = {
-            viewModel.logout()
+            viewModel.signUp(
+                context,
+                userEmail,
+                userPassword,
+                userName,
+                userUsername,
+                userAvatar
+            )
         }) {
-            Text(text = "Log Out")
+            Text(text = "Sign Up")
         }
 
         when(userState) {
