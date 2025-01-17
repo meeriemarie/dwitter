@@ -19,23 +19,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.cc231054.dwitter_ccl3.data.model.UserState
+import dev.cc231054.dwitter_ccl3.data.network.supabase
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.builtin.Email
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
-fun logInScreen(modifier: Modifier = Modifier,
-                viewModel: UserViewModel = viewModel(),
-                navigateToSignup: () -> Unit,
-                navigateToApp: () -> Unit
+fun signUpScreen(modifier: Modifier = Modifier,
+                 viewModel: UserViewModel = viewModel(),
+                 navigateToLogin: () -> Unit,
+                 navigateToApp: () -> Unit
 ) {
     val userState by viewModel.userState
     val context = LocalContext.current
 
     var userEmail by remember { mutableStateOf("") }
     var userPassword by remember { mutableStateOf("") }
+    var userAvatar by remember { mutableStateOf("") }
+    var userName by remember { mutableStateOf("") }
+    var userUsername by remember { mutableStateOf("") }
     var currentUserState by remember { mutableStateOf("") }
 
 
@@ -64,21 +74,51 @@ fun logInScreen(modifier: Modifier = Modifier,
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        TextField(
+            value = userName,
+            onValueChange = {userName= it},
+            placeholder = { Text(text = "Enter your Name") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        TextField(
+            value = userUsername,
+            onValueChange = {userUsername= it},
+            placeholder = { Text(text = "Enter your username") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        TextField(
+            value = userAvatar,
+            onValueChange = {userAvatar= it},
+            placeholder = { Text(text = "Enter your avatar url") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         Button(onClick = {
-            viewModel.logIn(
+            viewModel.signUp(
                 context,
                 userEmail,
-                userPassword
+                userPassword,
+                userName,
+                userAvatar,
+                userUsername
             )
         }) {
-            Text(text = "Log In")
+            Text(text = "Sign Up")
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "Don't have an account?")
+        Text(text = "Already have an account?")
 
-        Button(onClick = navigateToSignup) {
-            Text(text = "Sign Up")
+        Button(onClick = navigateToLogin) {
+            Text(text = "Log In")
         }
 
         when(userState) {
@@ -87,7 +127,7 @@ fun logInScreen(modifier: Modifier = Modifier,
             is UserState.Success -> {
                 val message = (userState as UserState.Success).message
                 currentUserState = message
-                Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
                 navigateToApp()
             }
             is UserState.Error -> {
