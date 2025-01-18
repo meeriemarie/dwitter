@@ -11,15 +11,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 
 @Composable
-fun ProfilePage(modifier: Modifier = Modifier) {
+fun ProfilePage(
+    modifier: Modifier = Modifier,
+    navController: NavController
+) {
     Column(modifier = modifier
         .fillMaxSize()
         .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally) {
         LogoutBtn()
+        AddPostButton(navController = navController)
     }
 }
 

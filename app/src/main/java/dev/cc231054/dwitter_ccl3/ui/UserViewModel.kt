@@ -12,14 +12,9 @@ import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.data.model.UserState
 import dev.cc231054.dwitter_ccl3.data.network.supabase
 import dev.cc231054.dwitter_ccl3.utils.SharedPreferenceHelper
-import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
-import io.github.jan.supabase.createSupabaseClient
-import io.github.jan.supabase.postgrest.Postgrest
 import dev.cc231054.dwitter_ccl3.db.PostEntity
-import dev.cc231054.dwitter_ccl3.db.UserEntity
-import dev.cc231054.dwitter_ccl3.supabase
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
@@ -33,32 +28,24 @@ class UserViewModel: ViewModel() {
     private val _users = MutableLiveData<List<UserEntity>>()
     val users: LiveData<List<UserEntity>> get() = _users
 
-    init {
-        viewModelScope.launch {
-            try {
-                val fetchedUsers = supabase.from("users")
-                    .select()
-                    .decodeList<UserEntity>()
-                _users.value = fetchedUsers
-            } catch (e: Exception) {
-                Log.e("UserViewModel", "Error: ${e.message}")
-            }
-        }
-    }
-
-
     private val _posts = MutableLiveData<List<PostEntity>>()
     val posts: LiveData<List<PostEntity>> get() = _posts
 
     init {
         viewModelScope.launch {
             try {
+                val fetchedUsers = supabase.from("profiles")
+                    .select()
+                    .decodeList<UserEntity>()
+                _users.value = fetchedUsers
+
                 val fetchedPosts = supabase.from("posts")
                     .select()
                     .decodeList<PostEntity>()
                 _posts.value = fetchedPosts
+
             } catch (e: Exception) {
-                Log.e("PostViewModel", "Error: ${e.message}")
+                Log.e("UserViewModel", "Error: ${e.message}")
             }
         }
     }
@@ -154,4 +141,7 @@ class UserViewModel: ViewModel() {
         }
     }
 
+    suspend fun getCurrentUserId(): String {
+        return supabase.auth.retrieveUserForCurrentSession(updateSession = true).id
+    }
 }

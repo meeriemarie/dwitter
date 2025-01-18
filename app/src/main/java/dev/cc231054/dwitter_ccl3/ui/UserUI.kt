@@ -1,5 +1,6 @@
 package dev.cc231054.dwitter_ccl3.ui
 
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -15,13 +16,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -40,29 +41,73 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.db.PostEntity
 
+
+//todo: this is a fucking mess and needs refactoring, each screen should be in its own file
 @Composable
-fun ContentScreen(modifier: Modifier = Modifier) {
+fun ContentScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController
+) {
     PostList(modifier = modifier)
+    AddPostButton(modifier = modifier, navController = navController)
 }
 
-//needs auth session
-//@Composable
-//fun UserList(
-//    modifier: Modifier = Modifier,
-//    viewModel: UserViewModel = viewModel()
-//) {
-//    val users by viewModel.users.observeAsState(emptyList())
-//    LazyColumn(
-//        modifier = modifier
-//    ) {
-//        items(users, key = { user -> user.id }) { user ->
-//            Text(user.username, modifier = Modifier.padding(8.dp))
-//        }
-//    }
-//}
+@Composable
+fun SearchScreen(
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        modifier = modifier,
+        text = "Search Screen"
+    )
+}
+
+@Composable
+fun EditPostScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController
+) {
+    Text(
+        modifier = modifier,
+        text = "Edit Post Screen"
+    )
+
+    BackButton(
+        modifier = modifier,
+        navController = navController
+    )
+}
+
+@Composable
+fun AddPostButton(
+    modifier: Modifier = Modifier,
+    navController: NavController
+) {
+    Button(
+        modifier = modifier,
+        onClick = {navController.navigate("editPost")}
+    ) {
+        Text(text = "Add Post")
+    }
+}
+
+@Composable
+fun BackButton(
+    modifier: Modifier = Modifier,
+    navController: NavController
+) {
+    Button(
+        modifier = modifier,
+        onClick = {navController.popBackStack()}
+    ) {
+        Text(text = "Back")
+    }
+}
 
 @Composable
 fun PostList(
@@ -70,12 +115,21 @@ fun PostList(
     viewModel: UserViewModel = viewModel()
 ) {
     val posts by viewModel.posts.observeAsState(emptyList())
+    val users by viewModel.users.observeAsState(emptyList())
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         items(posts, key = { post -> post.id }) { post ->
-            PostCard(post = post, modifier = Modifier.padding(8.dp).fillMaxWidth(0.8f))
+            val user = users.find { it.id == post.userid }
+            if (user != null) {
+                PostCard(
+                    post = post,
+                    user = user,
+                    modifier = Modifier.padding(8.dp).fillMaxWidth(0.8f)
+                )
+            }
         }
     }
 }
@@ -83,9 +137,9 @@ fun PostList(
 @Composable
 fun PostCard (
     modifier: Modifier = Modifier,
-    post: PostEntity
+    post: PostEntity,
+    user: UserEntity,
 ) {
-
     var showFullText by remember {
         mutableStateOf(false)
     }
@@ -102,12 +156,11 @@ fun PostCard (
                 modifier = Modifier.padding(vertical = 20.dp, horizontal = 15.dp)
             ) {
 
-                // placeholder user data, need auth session
                 Row {
                     Image(
                         modifier = Modifier.size(42.dp).clip(CircleShape),
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Profile"
+                        painter = rememberAsyncImagePainter(user.avatar_url),
+                        contentDescription = "user avatar"
                     )
 
                     Spacer(modifier = Modifier.width(10.dp))
@@ -119,7 +172,7 @@ fun PostCard (
                                 fontSize = 18.sp
                             )
                         ) {
-                            append("Username")
+                            append(user.name)
                         }
 
                         append("\n")
@@ -130,7 +183,7 @@ fun PostCard (
                                 fontSize = 16.sp
                             )
                         ) {
-                            append("@username")
+                            append(user.username)
                         }
                     }
 
