@@ -183,6 +183,7 @@ fun PostCard (
                         Column {
                             Icon(
                                 modifier = Modifier.clickable {
+                                    /*TODO*/
                                     Log.d("PostCard", "Delete Post")
                                 },
                                 imageVector = Icons.Outlined.Delete,
@@ -194,6 +195,7 @@ fun PostCard (
 
                             Icon(
                                 modifier = Modifier.clickable {
+                                    /*TODO*/
                                     Log.d("PostCard", "Edit Post")
                                 },
                                 imageVector = Icons.Default.Edit,

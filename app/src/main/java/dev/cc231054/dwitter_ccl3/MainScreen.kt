@@ -13,6 +13,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dev.cc231054.dwitter_ccl3.ui.AddPostButton
 import dev.cc231054.dwitter_ccl3.ui.BottomNavigationBar
 import dev.cc231054.dwitter_ccl3.ui.screens.ContentScreen
 import dev.cc231054.dwitter_ccl3.ui.screens.ProfileScreen
@@ -33,13 +34,15 @@ fun MainScreen(
         val bottomNav = rememberNavController()
         Scaffold(
             modifier = modifier.fillMaxSize(),
-            bottomBar = { BottomNavigationBar(bottomNav) }
+            bottomBar = { BottomNavigationBar(bottomNav) },
+            floatingActionButton = {
+                AddPostButton(navController = navController)
+            }
         ) {innerPadding ->
             NavHost(bottomNav, Screens.Home.name) {
                 composable(Screens.Home.name) {
                     ContentScreen(
                         modifier =  modifier.padding(innerPadding),
-                        navController = navController,
                         currentUserId = currentUserId.value ?: ""
                     )
                 }
@@ -47,7 +50,7 @@ fun MainScreen(
                     SearchScreen(modifier.padding(innerPadding))
                 }
                 composable(Screens.Profile.name) {
-                    ProfileScreen(modifier.padding(innerPadding), navController)
+                    ProfileScreen(modifier.padding(innerPadding))
                 }
             }
         }

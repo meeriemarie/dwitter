@@ -21,16 +21,9 @@ import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
-    navController: NavController
 ) {
     Box (modifier = Modifier.fillMaxSize()) {
         LogoutBtn(modifier = modifier)
-        AddPostButton(
-            modifier = modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-            navController = navController,
-        )
     }
 }
 
