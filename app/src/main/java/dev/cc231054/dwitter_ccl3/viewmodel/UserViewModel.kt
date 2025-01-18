@@ -1,4 +1,4 @@
-package dev.cc231054.dwitter_ccl3.ui
+package dev.cc231054.dwitter_ccl3.viewmodel
 
 import android.content.Context
 import android.util.Log
@@ -16,6 +16,8 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import dev.cc231054.dwitter_ccl3.db.PostEntity
 import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -31,6 +33,9 @@ class UserViewModel: ViewModel() {
     private val _posts = MutableLiveData<List<PostEntity>>()
     val posts: LiveData<List<PostEntity>> get() = _posts
 
+    private val _currentUserId = MutableLiveData<String?>(null)
+    val currentUserId: LiveData<String?> get() = _currentUserId
+
     init {
         viewModelScope.launch {
             try {
@@ -43,6 +48,8 @@ class UserViewModel: ViewModel() {
                     .select()
                     .decodeList<PostEntity>()
                 _posts.value = fetchedPosts
+
+                _currentUserId.value = getCurrentUserId()
 
             } catch (e: Exception) {
                 Log.e("UserViewModel", "Error: ${e.message}")
