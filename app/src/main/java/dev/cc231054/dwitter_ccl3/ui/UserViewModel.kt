@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.data.model.UserState
 import dev.cc231054.dwitter_ccl3.data.network.supabase
@@ -18,6 +19,9 @@ import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -27,19 +31,34 @@ class UserViewModel: ViewModel() {
     private val _userState = mutableStateOf<UserState>(UserState.Loading)
     val userState: State<UserState> = _userState
 
-    private val _users = MutableLiveData<List<UserEntity>>()
-    val users: LiveData<List<UserEntity>> get() = _users
+    private val _users = MutableStateFlow<List<UserEntity>>(emptyList())
+    val users: StateFlow<List<UserEntity>> get() = _users
+
+    private val _userProfile = MutableStateFlow<List<UserEntity>>(emptyList())
+    val userProfile: StateFlow<List<UserEntity>> get() = _userProfile
 
     init {
         viewModelScope.launch {
-            try {
+                val userId = supabase.auth.currentUserOrNull()?.id
+                if (userId != null) {
+                    val profileData = supabase.from("profiles")
+                        .select() {
+                            filter {
+                                eq("id", userId)
+                            }
+                        }
+                        .decodeList<UserEntity>()
+                    _userProfile.value = profileData
+                }
+        }
+    }
+
+    init {
+        viewModelScope.launch {
                 val fetchedUsers = supabase.from("profiles")
                     .select()
                     .decodeList<UserEntity>()
-                _users.value = fetchedUsers
-            } catch (e: Exception) {
-                Log.e("UserViewModel", "Error: ${e.message}")
-            }
+            _users.value = fetchedUsers
         }
     }
 
