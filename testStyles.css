@@ -1,8 +1,12 @@
     body {
         counter-reset: h2counter;
     }
+article {
+    margin: 2vh;
+}
     h1 {
         counter-reset: h2counter;
+        text-align: center;
     }
     h2:before {
         content: counter(h2counter) ".\0000a0\0000a0";
