@@ -11,17 +11,16 @@ import androidx.lifecycle.viewModelScope
 import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.data.model.UserState
 import dev.cc231054.dwitter_ccl3.data.network.supabase
+import dev.cc231054.dwitter_ccl3.data.PostEntity
 import dev.cc231054.dwitter_ccl3.utils.SharedPreferenceHelper
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
-import dev.cc231054.dwitter_ccl3.db.PostEntity
 import io.github.jan.supabase.postgrest.from
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
+// todo: viewmodel needs refactoring, api calls should be in repository
 
 class UserViewModel: ViewModel() {
     private val _userState = mutableStateOf<UserState>(UserState.Loading)
@@ -49,7 +48,8 @@ class UserViewModel: ViewModel() {
                     .decodeList<PostEntity>()
                 _posts.value = fetchedPosts
 
-                _currentUserId.value = getCurrentUserId()
+                val fetchedCurrentUserId = supabase.auth.retrieveUserForCurrentSession(updateSession = true).id
+                _currentUserId.value = fetchedCurrentUserId
 
             } catch (e: Exception) {
                 Log.e("UserViewModel", "Error: ${e.message}")
@@ -148,7 +148,31 @@ class UserViewModel: ViewModel() {
         }
     }
 
-    suspend fun getCurrentUserId(): String {
-        return supabase.auth.retrieveUserForCurrentSession(updateSession = true).id
+    fun deletePost(postId: Int) {
+        viewModelScope.launch {
+            try {
+                supabase.from("posts").delete{
+                    filter {
+                        eq("id", postId)
+                    }
+                }
+                _posts.value = _posts.value?.filter { it.id != postId }
+            } catch (e: Exception) {
+                Log.e("UserViewModel", "Error: ${e.message}")
+            }
+        }
+    }
+
+    fun upsertPost(post: PostEntity) {
+        viewModelScope.launch {
+            try {
+                supabase.from("posts").upsert(post)
+                val updatedPosts = _posts.value?.toMutableList() ?: mutableListOf()
+                updatedPosts.add(post)
+                _posts.value = updatedPosts
+            } catch (e: Exception) {
+                Log.e("UserViewModel", "Error: ${e.message}")
+            }
+        }
     }
 }

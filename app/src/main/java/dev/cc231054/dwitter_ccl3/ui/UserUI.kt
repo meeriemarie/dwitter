@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,17 +20,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,7 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -54,13 +55,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import dev.cc231054.dwitter_ccl3.data.UserEntity
-import dev.cc231054.dwitter_ccl3.db.PostEntity
+import dev.cc231054.dwitter_ccl3.data.PostEntity
 import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
+
+//todo: very messy, separate all composable into separate files
 
 @Composable
 fun AddPostButton(
     modifier: Modifier = Modifier,
-    navController: NavController
+    navController: NavController,
 ) {
     Button(
         modifier = modifier.size(72.dp),
@@ -107,14 +110,17 @@ fun PostList(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        items(posts, key = { post -> post.id }) { post ->
+        items(posts, key = { post -> post.id!! }) { post ->
             val user = users.find { it.id == post.userid }
             if (user != null) {
                 PostCard(
                     post = post,
                     user = user,
                     currentUserId = currentUserId,
-                    modifier = Modifier.padding(8.dp).fillMaxWidth(0.8f)
+                    modifier = Modifier.padding(8.dp).fillMaxWidth(0.8f),
+                    deletePost = {
+                        viewModel.deletePost(post.id!!)
+                    }
                 )
             }
         }
@@ -126,10 +132,27 @@ fun PostCard (
     modifier: Modifier = Modifier,
     post: PostEntity,
     user: UserEntity,
-    currentUserId: String
+    currentUserId: String,
+    deletePost : () -> Unit
 ) {
     var showFullText by remember {
         mutableStateOf(false)
+    }
+
+    var showDeletePostDialog by remember {
+        mutableStateOf(false)
+    }
+
+    if (showDeletePostDialog) {
+        DeletePostDialog(
+            onConfirm = {
+                deletePost()
+                showDeletePostDialog = false
+            },
+            onDismiss = {
+                showDeletePostDialog = false
+            }
+        )
     }
 
     Card(
@@ -183,8 +206,8 @@ fun PostCard (
                         Column {
                             Icon(
                                 modifier = Modifier.clickable {
-                                    /*TODO*/
-                                    Log.d("PostCard", "Delete Post")
+                                    /*TODO: Add confirmation and live ui update*/
+                                    showDeletePostDialog = true
                                 },
                                 imageVector = Icons.Outlined.Delete,
                                 tint = Color.Red,
@@ -221,12 +244,82 @@ fun PostCard (
                 )
             }
 
-            Image(
-                modifier = Modifier.fillMaxWidth().height(200.dp),
-                painter = rememberAsyncImagePainter(post.image),
-                contentDescription = "Post Image",
-                contentScale = ContentScale.Crop
-            )
+            if (post.image != null) {
+                Image(
+                    modifier = Modifier.fillMaxWidth().height(200.dp),
+                    painter = rememberAsyncImagePainter(post.image),
+                    contentDescription = "Post Image",
+                    contentScale = ContentScale.Crop
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DeletePostDialog(
+    modifier: Modifier = Modifier,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    BasicAlertDialog(
+        modifier = modifier,
+        onDismissRequest = { onDismiss() },
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = Color(0xFF454E62),
+            tonalElevation = AlertDialogDefaults.TonalElevation,
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                Text(
+                    text = "Confirm Delete",
+                    color = Color.White
+                )
+
+                Text(
+                    text = "Are you sure you want to delete this post?",
+                    color = Color.White.copy(alpha = 0.75f)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = { onDismiss() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF544D79)
+                        )
+                    ) {
+                        Text(
+                            text = "Cancel",
+                            color = Color.White
+                        )
+                    }
+
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = { onConfirm() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF544D79)
+                        )
+                    ) {
+                        Text(
+                            text = "Delete",
+                            color = Color.Red
+                        )
+                    }
+                }
+            }
         }
     }
 }
