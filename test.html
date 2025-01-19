@@ -1,10 +1,13 @@
-<html>
+<!DOCTYPE html>
     <head>
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="stylesheet" type="text/css" href="styles.css"/>
         <link rel="stylesheet" type="text/css" href="testStyles.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Markazi+Text:wght@400..700&display=swap" rel="stylesheet">
         <title> Dwitter </title>
     </head>
     <body>
@@ -16,14 +19,88 @@
             <a href="https://meeriemarie.github.io/dwitter/results.html"> Test Results </a>
         </div>
         </header>
-        <article class="content">
+        <div class="main">
         <h1 class="caption"> Usability Test Plan </h1>
-            <h2 class="subtitle"> Test Objective </h2>
-            <h2 class="subtitle"> Initial Hypothesis and Questions </h2>
-            <h2 class="subtitle"> Methods </h2>
-            <h2 class="subtitle"> Test Tasks </h2>
-            <h2 class="subtitle"> Test Procedure </h2>
-            <h2 class="subtitle"> Interview Questions </h2>
-        </article>
+        <h2 class="subtitle"> Test Objective </h2>
+            <ul class="content">
+                <li>Account Creation and login</li>
+                <li>Posting</li>
+                <li>Viewing a feed of posts</li>
+                <li>Interacting with posts and users</li>
+            </ul>
+        <h2 class="subtitle"> Initial Hypothesis and Questions </h2>
+        <h3 class="descriptor">Hypotheses:</h3>
+            <ul class="content">
+                <li>Users will find the account creation process intuitive and easy to complete</li>
+                <li>Users will be able to post and view tweets without confusion</li>
+                <li>The feed layout will effectively display content and be engaging</li>
+                <li>Interactions with tweets and other users (liking, following) will be straightforward</li>
+            </ul>
+        <h3 class="descriptor">Key Research Questions:</h3>
+            <ul class="content">
+                <li>Do users understand how to navigate the app?</li>
+                <li>Are there any pain points in the account creation or login process?</li>
+                <li>How easily can users post?</li>
+                <li>Is the feed layout visually appealing and easy to navigate?</li>
+                <li>Are interactions with tweets and users (like, follow) clear and accessible?</li>
+            </ul>
+        <h2 class="subtitle"> Methods </h2>
+        <h3 class="descriptor">Quantitative Methods:</h3>
+            <ul class="content">
+                <li>Task Completion Time</li>
+                <li>Frequency (e.g., clicking the wrong button, confusion)</li>
+                <li>System Usability Scale (SUS) score (post-test usability questionnaire)</li>
+            </ul>
+        <h3 class="descriptor">Quantitative Methods:</h3>
+            <ul class="content">
+                <li>User Observations</li>
+                <li>Interviews</li>
+            </ul>
+        <h2 class="subtitle"> Test Tasks </h2>
+        <h3 class="descriptor">Tasks for users:</h3>
+            <ul class="content">
+                <li>Create a new account.</li>
+                <li>Post something.</li>
+                <li>Find a specific post by “@username”</li>
+                <li>Like a tweet and find the page of you liked posts.</li>
+                <li>Log out and log back in.</li>
+                <li>Change your username</li>
+                </ul>
+        <h2 class="subtitle"> Test Procedure </h2>
+        <h3 class="descriptor">Participant Recruitment:</h3>
+            <ul class="content">
+                <li>4-6 participants from the target demographic</li>
+            </ul>
+        <h3 class="descriptor">Session:</h3>
+            <ul class="content">
+                <li>Introduction (5min)</li>
+                <li>Task Execution (15-20min)</li>
+                <ul class="nested">
+                    <li>User Observation</li>
+                    <li>TCT</li>
+                    <li>Error Rate</li>
+                </ul>
+                <li>Debrief and Feedback (5-10min)</li>
+                <ul class="nested">
+                    <li>Interview</li>
+                    <li>SUS</li>
+                </ul>
+            </ul>
+        <h2 class="subtitle"> Interview Questions </h2>
+        <ul class="content">
+            <li>How would you describe your overall experience with the app?</li>
+            <li>What did you like the most about the app?</li>
+            <li>What did you find most frustrating or confusing?</li>
+            <li>Were there any parts of the app where you felt stuck or unsure of what to do?</li>
+            <li>How did you find the account creation process?</li>
+            <li>Was it clear how to create a post? If not, what made it unclear?</li>
+            <li>Was it easy to find a specific post?</li>
+            <li>Did the layout of the app make sense?</li>
+            <li>Was the liking of posts clear?</li>
+            <li>Did you expect other ways to interact with posts?</li>
+            <li>Did the app meet your expectations for a social media platform? Why or why not?</li>
+            <li>Are there any features you think are missing or could be improved?</li>
+        </ul>
+        </div>
     </body>
 </html>
