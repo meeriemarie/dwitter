@@ -2,7 +2,8 @@
         counter-reset: h2counter;
     }
 article {
-    margin: 2vh;
+    margin: 5vw;
+    padding: 2vw;
 }
     h1 {
         counter-reset: h2counter;
