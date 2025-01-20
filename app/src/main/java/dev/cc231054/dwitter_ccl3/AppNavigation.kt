@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.cc231054.dwitter_ccl3.ui.BottomNavigationBar
 import dev.cc231054.dwitter_ccl3.ui.ContentScreen
+import dev.cc231054.dwitter_ccl3.ui.ProfileNav
 import dev.cc231054.dwitter_ccl3.ui.ProfilePage
 import dev.cc231054.dwitter_ccl3.ui.Screens
 import dev.cc231054.dwitter_ccl3.ui.UserViewModel
@@ -36,7 +37,7 @@ fun MainScreen(modifier: Modifier = Modifier
                     composable(Screens.Search.name) {
                     }
                     composable(Screens.Profile.name) {
-                        ProfilePage(Modifier.padding(innerPadding))
+                        ProfileNav()
                     }
                 }
             }

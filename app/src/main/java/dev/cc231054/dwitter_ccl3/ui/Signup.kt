@@ -136,10 +136,6 @@ fun signUpScreen(modifier: Modifier = Modifier,
                 Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
             }
         }
-
-        if(currentUserState.isNotEmpty()) {
-            Text(text = currentUserState)
-        }
     }
 
 }

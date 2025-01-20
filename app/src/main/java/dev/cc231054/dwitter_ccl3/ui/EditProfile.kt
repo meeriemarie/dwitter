@@ -1,5 +1,6 @@
 package dev.cc231054.dwitter_ccl3.ui
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,23 +21,46 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.data.model.UserState
+import kotlinx.coroutines.flow.collect
 
 @Composable
-fun logInScreen(modifier: Modifier = Modifier,
-                viewModel: UserViewModel = viewModel(),
-                navigateToSignup: () -> Unit,
-                navigateToApp: () -> Unit
+fun EditProfileScreen(
+    viewModel: UserViewModel = viewModel(),
+    onSaveClick: () -> Unit
+) {
+    val state by viewModel.currentUserState.collectAsStateWithLifecycle();
+    EditProfile(
+        navigateToProfile = onSaveClick,
+        userEntity = state)
+}
+
+
+@Composable
+fun EditProfile(modifier: Modifier = Modifier,
+                 viewModel: UserViewModel = viewModel(),
+                 navigateToProfile: () -> Unit,
+                userEntity: UserEntity
 ) {
     val userState by viewModel.userState
     val context = LocalContext.current
 
-    var userEmail by remember { mutableStateOf("") }
-    var userPassword by remember { mutableStateOf("") }
+    Log.i("Edit Profile", userEntity.username)
+
+    var userAvatar by remember { mutableStateOf(userEntity.avatar_url) }
+    var userName by remember { mutableStateOf(userEntity.name) }
+    var userUsername by remember { mutableStateOf(userEntity.username) }
     var currentUserState by remember { mutableStateOf("") }
+
+    LaunchedEffect(userEntity) {
+        userAvatar = userEntity.avatar_url
+        userName = userEntity.name
+        userUsername = userEntity.username
+    }
 
 
     Column(modifier = modifier
@@ -46,39 +70,37 @@ fun logInScreen(modifier: Modifier = Modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         TextField(
-            value = userEmail,
-            onValueChange = {userEmail = it},
-            placeholder = { Text(text = "Enter your email") },
+            value = userName,
+            onValueChange = {userName= it},
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         TextField(
-            value = userPassword,
-            onValueChange = {userPassword= it},
-            placeholder = { Text(text = "Enter your password") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation()
+            value = userUsername,
+            onValueChange = {userUsername= it},
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        TextField(
+            value = userAvatar,
+            onValueChange = {userAvatar= it},
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(onClick = {
-            viewModel.logIn(
-                context,
-                userEmail,
-                userPassword
+            viewModel.updateProfile(
+                userName,
+                userAvatar,
+                userUsername
             )
         }) {
-            Text(text = "Log In")
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "Don't have an account?")
-
-        Button(onClick = navigateToSignup) {
-            Text(text = "Sign Up")
+            Text(text = "Save Changes")
         }
 
         when(userState) {
@@ -87,8 +109,8 @@ fun logInScreen(modifier: Modifier = Modifier,
             is UserState.Success -> {
                 val message = (userState as UserState.Success).message
                 currentUserState = message
-                Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
-                navigateToApp()
+                Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
+                navigateToProfile()
             }
             is UserState.Error -> {
                 val message = (userState as UserState.Error).message

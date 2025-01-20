@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.cc231054.dwitter_ccl3.data.UUIDSerializer
 import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.data.model.UserState
 import dev.cc231054.dwitter_ccl3.data.network.supabase
@@ -22,20 +23,82 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import java.util.UUID
 
 
 class UserViewModel: ViewModel() {
     private val _userState = mutableStateOf<UserState>(UserState.Loading)
     val userState: State<UserState> = _userState
 
+    private val _currentUser = MutableStateFlow<UserEntity>(UserEntity(UUID(-1, -1), "", "", "" ,""))
+    val currentUserState: StateFlow<UserEntity> = _currentUser
+
     private val _users = MutableStateFlow<List<UserEntity>>(emptyList())
     val users: StateFlow<List<UserEntity>> get() = _users
 
     private val _userProfile = MutableStateFlow<List<UserEntity>>(emptyList())
     val userProfile: StateFlow<List<UserEntity>> get() = _userProfile
+
+    fun reloadProfile() {
+        viewModelScope.launch {
+            try {
+                val userId = supabase.auth.currentUserOrNull()?.id
+                if (userId != null) {
+                    val profile = supabase.from("profiles")
+                        .select() {
+                            filter {
+                                eq("id", userId)
+                            }
+                        }
+                        .decodeList<UserEntity>()
+                    _userState.value = UserState.Success("Successfully reloaded data")
+                }
+            } catch (e: Exception) {
+                _userState.value = UserState.Error("Error: ${e.message}")
+
+            }            }
+    }
+
+    fun updateProfile (
+        userName: String,
+        userAvatar: String,
+        userUsername: String
+    ) {
+        viewModelScope.launch {
+            try {
+                val userId = supabase.auth.currentUserOrNull()?.id
+                if (userId != null) {
+                    supabase.from("profiles").update({
+                        set("name", userName)
+                        set("username", userUsername)
+                        set("avatar_url", userAvatar)
+                    }) {
+                        filter {
+                            eq("id", userId)
+                        }
+                    }
+                    /*
+                    supabase.auth.updateUser {
+                        data = buildJsonObject {
+                            put("name", userName)
+                            put("username", userUsername)
+                            put("avatar_url", userAvatar)
+                        }
+                    }*/
+                    reloadProfile()
+                    _userState.value = UserState.Success("Data was successfully updated")
+                }
+            } catch (e: Exception) {
+                _userState.value = UserState.Error("Error: ${e.message}")
+            }
+        }
+
+    }
 
     init {
         viewModelScope.launch {
@@ -45,10 +108,14 @@ class UserViewModel: ViewModel() {
                         .select() {
                             filter {
                                 eq("id", userId)
+
                             }
                         }
                         .decodeList<UserEntity>()
                     _userProfile.value = profileData
+                    // If the user exists and is still logged in the request only returns one result
+                    if(profileData.isEmpty()) throw Exception("User profile could not be found in database")
+                    _currentUser.value = profileData[0]
                 }
         }
     }
@@ -116,6 +183,8 @@ class UserViewModel: ViewModel() {
                 }
                 saveToken(context)
                 _userState.value = UserState.Success("Logged in successfully!")
+                val currentUser = _users.value.find { it.email === userEmail};
+                _currentUser.value = currentUser!!;
             } catch (e: Exception) {
                 _userState.value = UserState.Error("Error: ${e.message}")
             }
@@ -127,6 +196,7 @@ class UserViewModel: ViewModel() {
             try {
                 supabase.auth.signOut()
                 _userState.value = UserState.Success("Logged out successfully!")
+                _currentUser.value = UserEntity(UUID(-1, -1), "", "", "" ,"")
             } catch (e: Exception) {
                 _userState.value = UserState.Error("Error: ${e.message}")
             }

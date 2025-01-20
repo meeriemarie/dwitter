@@ -21,11 +21,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import dev.cc231054.dwitter_ccl3.data.UserEntity
 
 @Composable
-fun ProfilePage(modifier: Modifier = Modifier) {
-    ProfileBanner()
+fun ProfileNav(viewModel: UserViewModel = viewModel()) {
+    val navController = rememberNavController()
+
+    NavHost(navController = navController, startDestination = "profile") {
+        composable("profile") {
+            ProfilePage(
+                onEditClick = {navController.navigate("editPage")})
+        }
+        composable("editPage") {
+            EditProfileScreen (
+                onSaveClick = {navController.navigate("profile")}
+                )
+        }
+    }
+}
+
+
+@Composable
+fun ProfilePage(modifier: Modifier = Modifier,
+                onEditClick: () -> Unit
+                ) {
+    ProfileBanner(navigateToEdit = onEditClick)
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally) {
@@ -33,7 +56,10 @@ fun ProfilePage(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ProfileBanner(viewModel: UserViewModel = viewModel()) {
+fun ProfileBanner(
+    viewModel: UserViewModel = viewModel(),
+    navigateToEdit: () -> Unit
+    ) {
     val profileData by viewModel.userProfile.collectAsState()
     Row(Modifier
         .fillMaxSize()
@@ -49,7 +75,7 @@ fun ProfileBanner(viewModel: UserViewModel = viewModel()) {
             }
         }
         Button(
-            onClick = {}
+            onClick = navigateToEdit
         ) {
             Text(text = "Edit Profile")
             Icon( imageVector = Icons.Filled.Edit, contentDescription = "Edit")

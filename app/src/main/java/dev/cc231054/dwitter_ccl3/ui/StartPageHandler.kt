@@ -56,7 +56,6 @@ fun LoginHandlerScreen(
 
     when(userState) {
         is UserState.Loading -> {
-            LoadingComponent()
         }
         is UserState.Success -> {
             navigateToApp()
