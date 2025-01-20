@@ -51,10 +51,7 @@
         font-size: large;
     }
 
-    th, tr, td {
+    th, td {
         border: 1px solid;
-    }
-
-    td, th {
         padding: 8px;
     }
