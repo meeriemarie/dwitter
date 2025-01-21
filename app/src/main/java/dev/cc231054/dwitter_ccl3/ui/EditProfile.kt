@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.data.model.UserState
+import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
 import kotlinx.coroutines.flow.collect
 
 @Composable

@@ -25,6 +25,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.cc231054.dwitter_ccl3.data.UserEntity
+import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
 
 @Composable
 fun ProfileNav(viewModel: UserViewModel = viewModel()) {

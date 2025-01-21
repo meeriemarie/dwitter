@@ -1,4 +1,4 @@
-package dev.cc231054.dwitter_ccl3.ui
+package dev.cc231054.dwitter_ccl3.viewmodel
 
 import android.content.Context
 import android.util.Log
@@ -13,12 +13,10 @@ import dev.cc231054.dwitter_ccl3.data.UUIDSerializer
 import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.data.model.UserState
 import dev.cc231054.dwitter_ccl3.data.network.supabase
+import dev.cc231054.dwitter_ccl3.data.PostEntity
 import dev.cc231054.dwitter_ccl3.utils.SharedPreferenceHelper
-import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
-import io.github.jan.supabase.createSupabaseClient
-import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +28,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import java.util.UUID
 
+// todo: viewmodel needs refactoring, api calls should be in repository
 
 class UserViewModel: ViewModel() {
     private val _userState = mutableStateOf<UserState>(UserState.Loading)
@@ -82,14 +81,6 @@ class UserViewModel: ViewModel() {
                             eq("id", userId)
                         }
                     }
-                    /*
-                    supabase.auth.updateUser {
-                        data = buildJsonObject {
-                            put("name", userName)
-                            put("username", userUsername)
-                            put("avatar_url", userAvatar)
-                        }
-                    }*/
                     reloadProfile()
                     _userState.value = UserState.Success("Data was successfully updated")
                 }
@@ -99,6 +90,12 @@ class UserViewModel: ViewModel() {
         }
 
     }
+
+    private val _posts = MutableLiveData<List<PostEntity>>()
+    val posts: LiveData<List<PostEntity>> get() = _posts
+
+    private val _currentUserId = MutableLiveData<String?>(null)
+    val currentUserId: LiveData<String?> get() = _currentUserId
 
     init {
         viewModelScope.launch {
@@ -127,6 +124,12 @@ class UserViewModel: ViewModel() {
                     .decodeList<UserEntity>()
             _users.value = fetchedUsers
         }
+    }
+
+    private suspend fun fetchCurrentUserId() {
+        val fetchedCurrentUserId =
+            supabase.auth.retrieveUserForCurrentSession(updateSession = true).id
+        _currentUserId.value = fetchedCurrentUserId
     }
 
     private fun saveToken(context: Context) {
@@ -203,9 +206,7 @@ class UserViewModel: ViewModel() {
         }
     }
 
-    fun isUserLoggedIn(
-        context: Context
-    ) {
+    fun isUserLoggedIn(context: Context) {
         viewModelScope.launch {
             try {
                 val token = getToken(context)
@@ -223,4 +224,89 @@ class UserViewModel: ViewModel() {
         }
     }
 
+    suspend fun fetchUsers () {
+        try {
+            val fetchedUsers = supabase.from("profiles")
+                .select()
+                .decodeList<UserEntity>()
+            _users.value = fetchedUsers
+            _userState.value = UserState.Success("Users fetched successfully!")
+        } catch (e: Exception) {
+            _userState.value = UserState.Error("Error: ${e.message}")
+        }
+    }
+
+    suspend fun fetchPosts () {
+        try {
+            val fetchedPosts = supabase.from("posts")
+                .select()
+                .decodeList<PostEntity>()
+            _posts.value = fetchedPosts
+            _userState.value = UserState.Success("Posts fetched successfully!")
+        } catch (e: Exception) {
+            _userState.value = UserState.Error("Error: ${e.message}")
+        }
+    }
+
+    suspend fun tryFetchPostById(postId: Int?): PostEntity {
+        val emptyPostEntity = PostEntity(id = null, userid = "", created_at = null, post = "", image = null)
+
+        return if (postId != null) {
+            try {
+                val fetchedPost = supabase.from("posts")
+                    .select(){
+                        filter {
+                            eq("id", postId)
+                        }
+                    }
+                    .decodeList<PostEntity>()
+                    .firstOrNull()
+                if (fetchedPost != null) {
+                    Log.d("UserViewModel", "fetchedPost: $fetchedPost")
+                    _userState.value = UserState.Success("Post fetched successfully!")
+                    fetchedPost
+                } else {
+                    _userState.value = UserState.Error("Post not found!")
+                    emptyPostEntity
+                }
+            } catch (e: Exception) {
+                _userState.value = UserState.Error("Error: ${e.message}")
+                emptyPostEntity
+            }
+        } else {
+            _userState.value = UserState.Error("Post not found!")
+            emptyPostEntity
+        }
+    }
+
+    fun deletePost(postId: Int) {
+        viewModelScope.launch {
+            try {
+                supabase.from("posts").delete{
+                    filter {
+                        eq("id", postId)
+                    }
+                }
+                _posts.value = _posts.value?.filter { it.id != postId }
+                _userState.value = UserState.Success("Post deleted successfully!")
+            } catch (e: Exception) {
+                _userState.value = UserState.Error("Error: ${e.message}")
+            }
+        }
+    }
+
+    fun upsertPost(post: PostEntity) {
+        viewModelScope.launch {
+            try {
+                supabase.from("posts").upsert(post)
+                val fetchedPosts = supabase.from("posts")
+                    .select()
+                    .decodeList<PostEntity>()
+                Log.d("UserViewModel", "fetchedPosts: $fetchedPosts")
+                _userState.value = UserState.Success("Post added successfully!")
+            } catch (e: Exception) {
+                _userState.value = UserState.Error("Error: ${e.message}")
+            }
+        }
+    }
 }

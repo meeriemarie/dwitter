@@ -10,9 +10,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.cc231054.dwitter_ccl3.MainScreen
 import dev.cc231054.dwitter_ccl3.data.model.UserState
+import dev.cc231054.dwitter_ccl3.ui.screens.LoginHandlerScreen
+import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
 
 @Composable
-fun AppNavigation(context: Context) {
+fun AppNavigation(
+    context: Context,
+) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "loginHandler") {
@@ -23,14 +27,17 @@ fun AppNavigation(context: Context) {
                 navigateToLogin = {navController.navigate("loginPage")}
             )
         }
-        composable("mainApp") { MainScreen() }
+        composable("mainApp") {
+            MainScreen()
+        }
+
         composable("loginPage") {
-            logInScreen(
+            LogInScreen(
                 navigateToSignup = {navController.navigate("signupPage")},
                 navigateToApp = {navController.navigate("mainApp")}
-        ) }
+            ) }
         composable("signupPage") {
-            signUpScreen(
+            SignUpScreen(
                 navigateToLogin = {navController.navigate("loginPage")},
                 navigateToApp = {navController.navigate("mainApp")}
             )
@@ -53,7 +60,6 @@ fun LoginHandlerScreen(
     LaunchedEffect(Unit) {
         viewModel.isUserLoggedIn(context)
     }
-
     when(userState) {
         is UserState.Loading -> {
         }
