@@ -126,6 +126,21 @@ class UserViewModel: ViewModel() {
         }
     }
 
+    init {
+        viewModelScope.launch {
+            try {
+                fetchUsers()
+
+                fetchPosts()
+
+                fetchCurrentUserId()
+
+            } catch (e: Exception) {
+                Log.e("UserViewModel", "Error: ${e.message}")
+            }
+        }
+    }
+
     private suspend fun fetchCurrentUserId() {
         val fetchedCurrentUserId =
             supabase.auth.retrieveUserForCurrentSession(updateSession = true).id

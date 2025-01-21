@@ -74,8 +74,7 @@ fun MainScreen(
                     SearchScreen(modifier.padding(innerPadding))
                 }
                 composable(Screens.Profile.name) {
-                    ProfileNav(,
-                        modifier.padding(innerPadding))
+                    ProfileNav()
                 }
                 composable(Screens.Edit.name){
                     val postId = bottomNavController
