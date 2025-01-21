@@ -53,6 +53,7 @@ fun ProfilePage(modifier: Modifier = Modifier,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally) {
         ProfileBanner(navigateToEdit = onEditClick)
+        LogoutBtn()
     }
 }
 

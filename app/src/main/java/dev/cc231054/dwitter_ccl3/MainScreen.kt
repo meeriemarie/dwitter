@@ -67,7 +67,8 @@ fun MainScreen(
                             bottomNavController.navigate(Screens.Edit.name) },
                         users = users,
                         posts = posts,
-                        deletePost = { userViewModel.deletePost(it) }
+                        deletePost = { userViewModel.deletePost(it) },
+                        viewModel = userViewModel
                     )
                 }
                 composable(Screens.Search.name) {

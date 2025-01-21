@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import org.jetbrains.annotations.Async.Execute
 import java.util.UUID
 
 // todo: viewmodel needs refactoring, api calls should be in repository
@@ -43,15 +44,77 @@ class UserViewModel: ViewModel() {
     private val _userProfile = MutableStateFlow<List<UserEntity>>(emptyList())
     val userProfile: StateFlow<List<UserEntity>> get() = _userProfile
 
+
+    fun checkIfLiked(
+        postId: Int,
+        userId: UUID,
+        onResult: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val result = supabase.from("liked_posts")
+                    .select() {
+                        filter {
+                            eq("userid", userId)
+                            eq("postid", postId)
+                        }
+                    }
+                if (result.data != null && result.data.isNotEmpty()) {
+                    onResult(true)
+                    _userState.value = UserState.Success("Liked")
+                } else {
+                    onResult(false)
+                    _userState.value = UserState.Error("Not Liked")
+                }
+            } catch (e: Exception) {
+                _userState.value = UserState.Error("Error: ${e.message}")
+                onResult(false)
+            }
+        }
+    }
+
+    fun likePost(
+        postId: Int,
+        userId: String
+    ) {
+        viewModelScope.launch {
+            try {
+                // if (isLiked) {
+                    supabase.from("liked_posts")
+                        .insert(
+                            mapOf(
+                                "userId" to userId,
+                                "postId" to postId
+                            )
+                        )
+                    _userState.value = UserState.Success("Liked successfully!")
+               /*
+                } else {
+                    supabase.from("liked_posts")
+                        .delete() {
+                            filter {
+                                eq("userId", currentUserId)
+                                eq("postId", postId)
+                            }
+                        }
+                    _userState.value = UserState.Success("Unliked successfully!")
+                }
+
+                */
+            } catch (e: Exception) {
+                _userState.value = UserState.Error("Error: ${e.message}")
+            }
+        }
+    }
+
     private fun reloadProfile() {
         viewModelScope.launch {
             try {
-                val userId = supabase.auth.currentUserOrNull()?.id
-                if (userId != null) {
+                if (currentUserId != null) {
                     val profile = supabase.from("profiles")
                         .select() {
                             filter {
-                                eq("id", userId)
+                                eq("id", currentUserId)
                             }
                         }
                         .decodeList<UserEntity>()

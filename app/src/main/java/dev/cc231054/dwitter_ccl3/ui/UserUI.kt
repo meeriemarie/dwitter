@@ -1,5 +1,6 @@
 package dev.cc231054.dwitter_ccl3.ui
 
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -20,7 +21,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
@@ -29,10 +33,13 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,11 +56,33 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import dev.cc231054.dwitter_ccl3.data.PostEntity
 import dev.cc231054.dwitter_ccl3.data.UserEntity
+import dev.cc231054.dwitter_ccl3.data.network.supabase
+import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
+import io.github.jan.supabase.postgrest.from
+import java.util.UUID
 
 //todo: very messy, should separate all (related) composable into separate files
+@Composable
+fun LikeButton(
+    modifier: Modifier = Modifier,
+    onLikeClick: () -> Unit
+) {
+    IconButton (
+        onClick = { onLikeClick },
+        modifier.padding(6.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.FavoriteBorder,
+            tint = Color.White,
+            contentDescription = "Like Post"
+        )
+    }
+}
+
 
 @Composable
 fun AddPostButton(
@@ -102,6 +131,7 @@ fun PostList(
     users: List<UserEntity>,
     onNavigate: (Int?) -> Unit,
     deletePost: (postId: Int) -> Unit,
+    viewModel: UserViewModel
 ) {
 
 
@@ -115,14 +145,15 @@ fun PostList(
                 PostCard(
                     post = post,
                     user = user,
-                    currentUserId = currentUserId,
+                    currentUserId = currentUserId.toString(),
                     modifier = Modifier
                         .padding(8.dp)
                         .fillMaxWidth(0.8f),
                     deletePost = {
                         deletePost(post.id!!)
                     },
-                    onNavigate = { onNavigate(it) }
+                    onNavigate = { onNavigate(it) },
+                    viewModel = viewModel
                 )
             }
         }
@@ -136,8 +167,13 @@ fun PostCard (
     post: PostEntity,
     user: UserEntity,
     deletePost : () -> Unit,
-    onNavigate: (Int?) -> Unit
+    onNavigate: (Int?) -> Unit,
+    viewModel: UserViewModel
 ) {
+    Log.i("UserUI userId", user.id.toString())
+    Log.i("UserUI currId", currentUserId)
+    Log.i("UserUI postId", post.id.toString())
+
     var showFullText by remember {
         mutableStateOf(false)
     }
@@ -157,6 +193,7 @@ fun PostCard (
             }
         )
     }
+
 
     Card(
         modifier = modifier.animateContentSize(),
@@ -255,6 +292,16 @@ fun PostCard (
                     painter = rememberAsyncImagePainter(post.image),
                     contentDescription = "Post Image",
                     contentScale = ContentScale.Crop
+                )
+            }
+            if (user.id.toString() != currentUserId) {
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                LikeButton(
+                    onLikeClick = {
+                        viewModel.likePost(postId = post.id!!, userId = currentUserId)
+                    }
                 )
             }
         }
