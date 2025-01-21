@@ -30,7 +30,7 @@ fun MainScreen(
     userViewModel: UserViewModel = viewModel(),
 ) {
     val posts by userViewModel.posts.observeAsState(emptyList())
-    val users by userViewModel.users.collectAsState(emptyList())
+    val users by userViewModel.users.observeAsState(emptyList())
     val currentUserId by userViewModel.currentUserId.observeAsState()
 
     Column {

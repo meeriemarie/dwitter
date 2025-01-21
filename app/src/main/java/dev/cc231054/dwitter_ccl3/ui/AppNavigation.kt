@@ -44,30 +44,3 @@ fun AppNavigation(
         }
     }
 }
-
-
-
-
-@Composable
-fun LoginHandlerScreen(
-    context: Context,
-    viewModel: UserViewModel = viewModel(),
-    navigateToApp: () -> Unit,
-    navigateToLogin: () -> Unit
-) {
-    val userState by viewModel.userState
-
-    LaunchedEffect(Unit) {
-        viewModel.isUserLoggedIn(context)
-    }
-    when(userState) {
-        is UserState.Loading -> {
-        }
-        is UserState.Success -> {
-            navigateToApp()
-        }
-        is UserState.Error -> {
-            navigateToLogin()
-        }
-    }
-}

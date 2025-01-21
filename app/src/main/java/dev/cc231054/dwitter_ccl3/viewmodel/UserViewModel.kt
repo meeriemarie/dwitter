@@ -37,13 +37,13 @@ class UserViewModel: ViewModel() {
     private val _currentUser = MutableStateFlow<UserEntity>(UserEntity(UUID(-1, -1), "", "", "" ,""))
     val currentUserState: StateFlow<UserEntity> = _currentUser
 
-    private val _users = MutableStateFlow<List<UserEntity>>(emptyList())
-    val users: StateFlow<List<UserEntity>> get() = _users
+    private val _users = MutableLiveData<List<UserEntity>>(emptyList())
+    val users: LiveData<List<UserEntity>> get() = _users
 
     private val _userProfile = MutableStateFlow<List<UserEntity>>(emptyList())
     val userProfile: StateFlow<List<UserEntity>> get() = _userProfile
 
-    fun reloadProfile() {
+    private fun reloadProfile() {
         viewModelScope.launch {
             try {
                 val userId = supabase.auth.currentUserOrNull()?.id
@@ -119,19 +119,15 @@ class UserViewModel: ViewModel() {
 
     init {
         viewModelScope.launch {
-                val fetchedUsers = supabase.from("profiles")
-                    .select()
-                    .decodeList<UserEntity>()
-            _users.value = fetchedUsers
-        }
-    }
-
-    init {
-        viewModelScope.launch {
             try {
-                fetchUsers()
 
-                fetchPosts()
+                // do not call fetchUsers() and fetchPosts() in init
+                // use launchEffect in the Screen itself
+                // it WILL clash with the editUser page
+                // maybe refactoring and making it pretty
+                //fetchUsers()
+
+                //fetchPosts()
 
                 fetchCurrentUserId()
 
@@ -201,7 +197,7 @@ class UserViewModel: ViewModel() {
                 }
                 saveToken(context)
                 _userState.value = UserState.Success("Logged in successfully!")
-                val currentUser = _users.value.find { it.email === userEmail};
+                val currentUser = _users.value?.find { it.email === userEmail};
                 _currentUser.value = currentUser!!;
             } catch (e: Exception) {
                 _userState.value = UserState.Error("Error: ${e.message}")

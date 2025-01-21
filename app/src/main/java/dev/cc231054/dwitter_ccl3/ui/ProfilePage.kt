@@ -28,7 +28,7 @@ import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
 
 @Composable
-fun ProfileNav(viewModel: UserViewModel = viewModel()) {
+fun ProfileNav() {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "profile") {
@@ -49,10 +49,10 @@ fun ProfileNav(viewModel: UserViewModel = viewModel()) {
 fun ProfilePage(modifier: Modifier = Modifier,
                 onEditClick: () -> Unit
                 ) {
-    ProfileBanner(navigateToEdit = onEditClick)
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally) {
+        ProfileBanner(navigateToEdit = onEditClick)
     }
 }
 
