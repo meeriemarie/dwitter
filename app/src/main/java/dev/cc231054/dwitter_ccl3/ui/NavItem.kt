@@ -16,7 +16,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 enum class Screens {
     Home,
     Search,
-    Profile
+    Profile,
+    Edit,
 }
 
 @Composable

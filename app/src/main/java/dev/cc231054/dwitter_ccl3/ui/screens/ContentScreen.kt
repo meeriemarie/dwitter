@@ -4,18 +4,27 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import dev.cc231054.dwitter_ccl3.data.PostEntity
+import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.ui.PostList
 
 @Composable
 fun ContentScreen(
     modifier: Modifier = Modifier,
-    currentUserId: String
+    currentUserId: String,
+    onNavigate: (Int?) -> Unit,
+    users : List<UserEntity>,
+    posts : List<PostEntity>,
+    deletePost: (postId: Int) -> Unit
 ) {
-
     Box (modifier = Modifier.fillMaxSize()) {
         PostList(
             modifier = modifier,
-            currentUserId = currentUserId
+            currentUserId = currentUserId,
+            onNavigate = { onNavigate(it) },
+            posts = posts,
+            users = users,
+            deletePost = { deletePost(it) }
         )
     }
 }

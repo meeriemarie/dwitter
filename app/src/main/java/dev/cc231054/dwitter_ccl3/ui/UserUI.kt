@@ -1,6 +1,5 @@
 package dev.cc231054.dwitter_ccl3.ui
 
-import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -35,7 +34,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -51,23 +49,22 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.data.PostEntity
-import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
+import dev.cc231054.dwitter_ccl3.data.UserEntity
 
-//todo: very messy, separate all composable into separate files
+//todo: very messy, should separate all (related) composable into separate files
 
 @Composable
 fun AddPostButton(
     modifier: Modifier = Modifier,
-    navController: NavController,
+    onNavigate : () -> Unit,
 ) {
     Button(
         modifier = modifier.size(72.dp),
-        onClick = {navController.navigate("editPost")},
+        onClick = {
+            onNavigate()
+        },
         colors = ButtonDefaults.buttonColors(
             containerColor = Color(0xFF454E62)
         ),
@@ -84,11 +81,11 @@ fun AddPostButton(
 @Composable
 fun BackButton(
     modifier: Modifier = Modifier,
-    navController: NavController
+    onBackButton : () -> Unit,
 ) {
     Button(
         modifier = modifier,
-        onClick = {navController.popBackStack()},
+        onClick = {onBackButton()},
         colors = ButtonDefaults.buttonColors(
             containerColor = Color(0xFF454E62)
         )
@@ -100,27 +97,32 @@ fun BackButton(
 @Composable
 fun PostList(
     modifier: Modifier = Modifier,
-    viewModel: UserViewModel = viewModel(),
-    currentUserId: String
+    currentUserId: String,
+    posts: List<PostEntity>,
+    users: List<UserEntity>,
+    onNavigate: (Int?) -> Unit,
+    deletePost: (postId: Int) -> Unit,
 ) {
-    val posts by viewModel.posts.observeAsState(emptyList())
-    val users by viewModel.users.observeAsState(emptyList())
+
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        items(posts, key = { post -> post.id!! }) { post ->
+        items(posts, key = { post -> post.id ?: 0 }) { post ->
             val user = users.find { it.id == post.userid }
             if (user != null) {
                 PostCard(
                     post = post,
                     user = user,
                     currentUserId = currentUserId,
-                    modifier = Modifier.padding(8.dp).fillMaxWidth(0.8f),
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxWidth(0.8f),
                     deletePost = {
-                        viewModel.deletePost(post.id!!)
-                    }
+                        deletePost(post.id!!)
+                    },
+                    onNavigate = { onNavigate(it) }
                 )
             }
         }
@@ -130,10 +132,11 @@ fun PostList(
 @Composable
 fun PostCard (
     modifier: Modifier = Modifier,
+    currentUserId: String,
     post: PostEntity,
     user: UserEntity,
-    currentUserId: String,
-    deletePost : () -> Unit
+    deletePost : () -> Unit,
+    onNavigate: (Int?) -> Unit
 ) {
     var showFullText by remember {
         mutableStateOf(false)
@@ -169,7 +172,9 @@ fun PostCard (
 
                 Row {
                     Image(
-                        modifier = Modifier.size(42.dp).clip(CircleShape),
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(CircleShape),
                         painter = rememberAsyncImagePainter(user.avatar_url),
                         contentDescription = "user avatar"
                     )
@@ -206,7 +211,6 @@ fun PostCard (
                         Column {
                             Icon(
                                 modifier = Modifier.clickable {
-                                    /*TODO: Add confirmation and live ui update*/
                                     showDeletePostDialog = true
                                 },
                                 imageVector = Icons.Outlined.Delete,
@@ -218,8 +222,7 @@ fun PostCard (
 
                             Icon(
                                 modifier = Modifier.clickable {
-                                    /*TODO*/
-                                    Log.d("PostCard", "Edit Post")
+                                    onNavigate(post.id)
                                 },
                                 imageVector = Icons.Default.Edit,
                                 tint = Color.White,
@@ -246,7 +249,9 @@ fun PostCard (
 
             if (post.image != null) {
                 Image(
-                    modifier = Modifier.fillMaxWidth().height(200.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
                     painter = rememberAsyncImagePainter(post.image),
                     contentDescription = "Post Image",
                     contentScale = ContentScale.Crop

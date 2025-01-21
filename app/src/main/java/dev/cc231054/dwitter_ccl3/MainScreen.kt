@@ -5,10 +5,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -16,6 +17,7 @@ import dev.cc231054.dwitter_ccl3.ui.AddPostButton
 import dev.cc231054.dwitter_ccl3.ui.BottomNavigationBar
 import dev.cc231054.dwitter_ccl3.ui.Screens
 import dev.cc231054.dwitter_ccl3.ui.screens.ContentScreen
+import dev.cc231054.dwitter_ccl3.ui.screens.EditPostScreen
 import dev.cc231054.dwitter_ccl3.ui.screens.ProfileScreen
 import dev.cc231054.dwitter_ccl3.ui.screens.SearchScreen
 import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
@@ -23,26 +25,47 @@ import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
-    navController: NavController,
-    userViewModel: UserViewModel = viewModel()
+    userViewModel: UserViewModel = viewModel(),
 ) {
-
-    val currentUserId = userViewModel.currentUserId.observeAsState()
+    val posts by userViewModel.posts.observeAsState(emptyList())
+    val users by userViewModel.users.observeAsState(emptyList())
+    val currentUserId by userViewModel.currentUserId.observeAsState()
 
     Column {
-        val bottomNav = rememberNavController()
+        val bottomNavController = rememberNavController()
+
         Scaffold(
             modifier = modifier.fillMaxSize(),
-            bottomBar = { BottomNavigationBar(bottomNav) },
+            bottomBar = { BottomNavigationBar(bottomNavController) },
             floatingActionButton = {
-                AddPostButton(navController = navController)
+                AddPostButton(onNavigate = {
+                    bottomNavController.currentBackStackEntry?.savedStateHandle?.set(
+                        key = "id",
+                        value = null
+                    )
+
+                    bottomNavController.navigate(Screens.Edit.name)
+                })
             }
-        ) {innerPadding ->
-            NavHost(bottomNav, Screens.Home.name) {
+        ) { innerPadding ->
+            NavHost(bottomNavController, startDestination = Screens.Home.name) {
                 composable(Screens.Home.name) {
+                    LaunchedEffect(Unit) {
+                        userViewModel.fetchPosts()
+                        userViewModel.fetchUsers()
+                    }
+
                     ContentScreen(
-                        modifier =  modifier.padding(innerPadding),
-                        currentUserId = currentUserId.value ?: ""
+                        modifier = modifier.padding(innerPadding),
+                        currentUserId = currentUserId ?: "",
+                        onNavigate = {
+                            bottomNavController.currentBackStackEntry?.savedStateHandle?.set(
+                                "id", it
+                            )
+                            bottomNavController.navigate(Screens.Edit.name) },
+                        users = users,
+                        posts = posts,
+                        deletePost = { userViewModel.deletePost(it) }
                     )
                 }
                 composable(Screens.Search.name) {
@@ -51,8 +74,27 @@ fun MainScreen(
                 composable(Screens.Profile.name) {
                     ProfileScreen(modifier.padding(innerPadding))
                 }
+                composable(Screens.Edit.name){
+                    val postId = bottomNavController
+                        .previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.get<Int>("id")
+
+
+                    EditPostScreen(
+                        Modifier.padding(innerPadding),
+                        currentUserId = currentUserId ?: "",
+                        userViewModel = userViewModel,
+                        postId = postId,
+                        upsertPost = { userViewModel.upsertPost(it) },
+                        onBackButton = { bottomNavController.popBackStack() }
+                    )
+                }
             }
         }
     }
 }
+
+
+
 
