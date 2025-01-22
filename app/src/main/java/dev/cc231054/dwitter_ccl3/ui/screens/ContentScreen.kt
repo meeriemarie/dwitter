@@ -13,14 +13,15 @@ import java.util.UUID
 @Composable
 fun ContentScreen(
     modifier: Modifier = Modifier,
-    currentUserId: String,
+    currentUserId: UUID,
     onNavigate: (Int?) -> Unit,
-    users : List<UserEntity>,
-    posts : List<PostEntity>,
+    users: List<UserEntity>,
+    posts: List<PostEntity>,
     deletePost: (postId: Int) -> Unit,
-    viewModel: UserViewModel
-) {
-    Box (modifier = Modifier.fillMaxSize()) {
+    viewModel: UserViewModel,
+
+    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         PostList(
             modifier = modifier,
             currentUserId = currentUserId,

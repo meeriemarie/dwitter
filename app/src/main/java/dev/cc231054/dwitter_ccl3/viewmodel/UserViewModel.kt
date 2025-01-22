@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.cc231054.dwitter_ccl3.data.LikedPostEntity
 import dev.cc231054.dwitter_ccl3.data.UUIDSerializer
 import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.data.model.UserState
@@ -31,11 +32,12 @@ import java.util.UUID
 
 // todo: viewmodel needs refactoring, api calls should be in repository
 
-class UserViewModel: ViewModel() {
+class UserViewModel : ViewModel() {
     private val _userState = mutableStateOf<UserState>(UserState.Loading)
     val userState: State<UserState> = _userState
 
-    private val _currentUser = MutableStateFlow<UserEntity>(UserEntity(UUID(-1, -1), "", "", "" ,""))
+    private val _currentUser =
+        MutableStateFlow<UserEntity>(UserEntity(UUID(-1, -1), "", "", "", ""))
     val currentUserState: StateFlow<UserEntity> = _currentUser
 
     private val _users = MutableLiveData<List<UserEntity>>(emptyList())
@@ -43,6 +45,43 @@ class UserViewModel: ViewModel() {
 
     private val _userProfile = MutableStateFlow<List<UserEntity>>(emptyList())
     val userProfile: StateFlow<List<UserEntity>> get() = _userProfile
+
+    fun unlikePost(
+        userId: UUID,
+        postId: Int
+    ) {
+        viewModelScope.launch {
+            try {
+                val result = supabase.from("liked_posts").delete {
+                    filter {
+                        eq("userid", userId)
+                        eq("postid", postId)
+                    }
+                }
+                _userState.value = UserState.Success("Unliked successfully!")
+            } catch (e: Exception) {
+                _userState.value = UserState.Error("Error: ${e.message}")
+            }
+        }
+    }
+
+    suspend fun getLikedPosts(userId: UUID): List<Int> {
+        return try {
+            val fetchedPosts = supabase.from("liked_posts")
+                .select(columns = Columns.list("postid")) {
+                    filter {
+                        eq("userid", userId)
+                    }
+                }.decodeList<Map<String, Int>>()
+            fetchedPosts.mapNotNull { it["postid"] }.also {
+                Log.i("fetched posts", "UserId: $userId, Fetched posts: $it")
+            }
+        } catch (e: Exception) {
+            _userState.value = UserState.Error("Error: ${e.message}")
+            Log.i("Error", e.message.toString())
+            emptyList()
+        }
+    }
 
 
     fun checkIfLiked(
@@ -75,32 +114,13 @@ class UserViewModel: ViewModel() {
 
     fun likePost(
         postId: Int,
-        userId: String
+        userId: UUID
     ) {
         viewModelScope.launch {
             try {
-                // if (isLiked) {
-                    supabase.from("liked_posts")
-                        .insert(
-                            mapOf(
-                                "userId" to userId,
-                                "postId" to postId
-                            )
-                        )
-                    _userState.value = UserState.Success("Liked successfully!")
-               /*
-                } else {
-                    supabase.from("liked_posts")
-                        .delete() {
-                            filter {
-                                eq("userId", currentUserId)
-                                eq("postId", postId)
-                            }
-                        }
-                    _userState.value = UserState.Success("Unliked successfully!")
-                }
-
-                */
+                val likedPost = LikedPostEntity(userId, postId)
+                val result = supabase.from("liked_posts").insert(likedPost)
+                _userState.value = UserState.Success("Liked successfully!")
             } catch (e: Exception) {
                 _userState.value = UserState.Error("Error: ${e.message}")
             }
@@ -123,10 +143,11 @@ class UserViewModel: ViewModel() {
             } catch (e: Exception) {
                 _userState.value = UserState.Error("Error: ${e.message}")
 
-            }            }
+            }
+        }
     }
 
-    fun updateProfile (
+    fun updateProfile(
         userName: String,
         userAvatar: String,
         userUsername: String
@@ -159,26 +180,6 @@ class UserViewModel: ViewModel() {
 
     private val _currentUserId = MutableLiveData<String?>(null)
     val currentUserId: LiveData<String?> get() = _currentUserId
-
-    init {
-        viewModelScope.launch {
-                val userId = supabase.auth.currentUserOrNull()?.id
-                if (userId != null) {
-                    val profileData = supabase.from("profiles")
-                        .select() {
-                            filter {
-                                eq("id", userId)
-
-                            }
-                        }
-                        .decodeList<UserEntity>()
-                    _userProfile.value = profileData
-                    // If the user exists and is still logged in the request only returns one result
-                    if(profileData.isEmpty()) throw Exception("User profile could not be found in database")
-                    _currentUser.value = profileData[0]
-                }
-        }
-    }
 
     init {
         viewModelScope.launch {
@@ -260,7 +261,7 @@ class UserViewModel: ViewModel() {
                 }
                 saveToken(context)
                 _userState.value = UserState.Success("Logged in successfully!")
-                val currentUser = _users.value?.find { it.email === userEmail};
+                val currentUser = _users.value?.find { it.email === userEmail };
                 _currentUser.value = currentUser!!;
             } catch (e: Exception) {
                 _userState.value = UserState.Error("Error: ${e.message}")
@@ -273,7 +274,7 @@ class UserViewModel: ViewModel() {
             try {
                 supabase.auth.signOut()
                 _userState.value = UserState.Success("Logged out successfully!")
-                _currentUser.value = UserEntity(UUID(-1, -1), "", "", "" ,"")
+                _currentUser.value = UserEntity(UUID(-1, -1), "", "", "", "")
             } catch (e: Exception) {
                 _userState.value = UserState.Error("Error: ${e.message}")
             }
@@ -298,7 +299,7 @@ class UserViewModel: ViewModel() {
         }
     }
 
-    suspend fun fetchUsers () {
+    suspend fun fetchUsers() {
         try {
             val fetchedUsers = supabase.from("profiles")
                 .select()
@@ -310,7 +311,25 @@ class UserViewModel: ViewModel() {
         }
     }
 
-    suspend fun fetchPosts () {
+    suspend fun fetchUserId() {
+        val userId = supabase.auth.currentUserOrNull()?.id
+        if (userId != null) {
+            val profileData = supabase.from("profiles")
+                .select() {
+                    filter {
+                        eq("id", userId)
+
+                    }
+                }
+                .decodeList<UserEntity>()
+            _userProfile.value = profileData
+            // If the user exists and is still logged in the request only returns one result
+            if (profileData.isEmpty()) throw Exception("User profile could not be found in database")
+            _currentUser.value = profileData[0]
+        }
+    }
+
+    suspend fun fetchPosts() {
         try {
             val fetchedPosts = supabase.from("posts")
                 .select()
@@ -323,12 +342,13 @@ class UserViewModel: ViewModel() {
     }
 
     suspend fun tryFetchPostById(postId: Int?): PostEntity {
-        val emptyPostEntity = PostEntity(id = null, userid = "", created_at = null, post = "", image = null)
+        val emptyPostEntity =
+            PostEntity(id = null, userid = UUID(0, 0), created_at = null, post = "", image = null)
 
         return if (postId != null) {
             try {
                 val fetchedPost = supabase.from("posts")
-                    .select(){
+                    .select() {
                         filter {
                             eq("id", postId)
                         }
@@ -356,7 +376,7 @@ class UserViewModel: ViewModel() {
     fun deletePost(postId: Int) {
         viewModelScope.launch {
             try {
-                supabase.from("posts").delete{
+                supabase.from("posts").delete {
                     filter {
                         eq("id", postId)
                     }
