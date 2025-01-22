@@ -21,6 +21,7 @@ import dev.cc231054.dwitter_ccl3.ui.ProfileNav
 import dev.cc231054.dwitter_ccl3.ui.Screens
 import dev.cc231054.dwitter_ccl3.ui.screens.ContentScreen
 import dev.cc231054.dwitter_ccl3.ui.screens.EditPostScreen
+import dev.cc231054.dwitter_ccl3.ui.screens.MainSearch
 import dev.cc231054.dwitter_ccl3.ui.screens.ProfileScreen
 import dev.cc231054.dwitter_ccl3.ui.screens.SearchScreen
 import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
@@ -30,7 +31,7 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     userViewModel: UserViewModel = viewModel(),
 ) {
-    val posts by userViewModel.posts.observeAsState(emptyList())
+    val posts by userViewModel.posts.collectAsStateWithLifecycle()
     val users by userViewModel.users.observeAsState(emptyList())
     val currentUserState by userViewModel.currentUserState.collectAsStateWithLifecycle()
 
@@ -75,7 +76,19 @@ fun MainScreen(
                     )
                 }
                 composable(Screens.Search.name) {
-                    SearchScreen(modifier.padding(innerPadding))
+                    SearchScreen(
+                        currentUserId = currentUserState.id,
+                        onNavigate = {
+                            bottomNavController.currentBackStackEntry?.savedStateHandle?.set(
+                                "id", it
+                            )
+                            bottomNavController.navigate(Screens.Edit.name)
+                        },
+                        users = users,
+                        posts = posts,
+                        deletePost = { userViewModel.deletePost(it) },
+                        viewModel = userViewModel
+                    )
                 }
                 composable(Screens.Profile.name) {
                     ProfileNav()

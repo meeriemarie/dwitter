@@ -21,9 +21,13 @@ import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -45,6 +49,58 @@ class UserViewModel : ViewModel() {
 
     private val _userProfile = MutableStateFlow<List<UserEntity>>(emptyList())
     val userProfile: StateFlow<List<UserEntity>> get() = _userProfile
+
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching = _isSearching.asStateFlow()
+
+    private val _searchText = MutableStateFlow("")
+    val searchText = _searchText.asStateFlow()
+
+    private val _posts = MutableStateFlow<List<PostEntity>>(emptyList())
+    val posts: StateFlow<List<PostEntity>> get() = _posts
+
+    private val _currentUserId = MutableLiveData<String?>(null)
+    val currentUserId: LiveData<String?> get() = _currentUserId
+
+    private val _searchResults = MutableStateFlow(_posts.value)
+    val searchResults = searchText
+        .combine(_posts) { text, posts ->
+            if (text.isBlank()) {
+            }
+
+            posts.filter { post ->
+                val doesPostTextMatches = post.post.contains(text, ignoreCase = true)
+                var doesMatchUUID = false
+                if (!doesPostTextMatches) {
+                    val matchingUUIDs =
+                        users.value?.filter { u ->
+                            u.username.contains(text, ignoreCase = true)
+                        }
+                            ?.map { it ->
+                                it.id
+                            }
+                    doesMatchUUID = matchingUUIDs!!.contains(post.userid)
+                }
+                doesPostTextMatches || doesMatchUUID
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = _searchResults.value
+        )
+
+    fun onSearchTextChange(text: String) {
+        Log.i("Search text", text)
+        _searchText.value = text
+    }
+
+    fun onToggleSearch() {
+        _isSearching.value = !_isSearching.value
+        if (!_isSearching.value) {
+            onSearchTextChange("")
+        }
+    }
+
 
     fun unlikePost(
         userId: UUID,
@@ -175,11 +231,6 @@ class UserViewModel : ViewModel() {
 
     }
 
-    private val _posts = MutableLiveData<List<PostEntity>>()
-    val posts: LiveData<List<PostEntity>> get() = _posts
-
-    private val _currentUserId = MutableLiveData<String?>(null)
-    val currentUserId: LiveData<String?> get() = _currentUserId
 
     init {
         viewModelScope.launch {
@@ -265,6 +316,7 @@ class UserViewModel : ViewModel() {
                 _currentUser.value = currentUser!!;
             } catch (e: Exception) {
                 _userState.value = UserState.Error("Error: ${e.message}")
+                Log.i("Login", e.message.toString())
             }
         }
     }
@@ -381,7 +433,7 @@ class UserViewModel : ViewModel() {
                         eq("id", postId)
                     }
                 }
-                _posts.value = _posts.value?.filter { it.id != postId }
+                _posts.value = _posts.value.filter { it.id != postId }
                 _userState.value = UserState.Success("Post deleted successfully!")
             } catch (e: Exception) {
                 _userState.value = UserState.Error("Error: ${e.message}")

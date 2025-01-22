@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -34,26 +35,27 @@ fun ProfileNav() {
     NavHost(navController = navController, startDestination = "profile") {
         composable("profile") {
             ProfilePage(
-                onEditClick = {navController.navigate("editPage")})
+                onEditClick = { navController.navigate("editPage") })
         }
         composable("editPage") {
-            EditProfileScreen (
-                onSaveClick = {navController.navigate("profile")}
-                )
+            EditProfileScreen(
+                onSaveClick = { navController.navigate("profile") }
+            )
         }
     }
 }
 
 
 @Composable
-fun ProfilePage(modifier: Modifier = Modifier,
-                onEditClick: () -> Unit
-                ) {
+fun ProfilePage(
+    modifier: Modifier = Modifier,
+    onEditClick: () -> Unit
+) {
     Column(
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally) {
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         ProfileBanner(navigateToEdit = onEditClick)
-        LogoutBtn()
     }
 }
 
@@ -61,16 +63,16 @@ fun ProfilePage(modifier: Modifier = Modifier,
 fun ProfileBanner(
     viewModel: UserViewModel = viewModel(),
     navigateToEdit: () -> Unit
-    ) {
+) {
     val profileData by viewModel.userProfile.collectAsState()
-    Row(Modifier
-        .fillMaxSize()
-        .padding(16.dp),
+    Row(
+        Modifier
+            .fillMaxSize()
+            .padding(16.dp),
         horizontalArrangement = Arrangement.Start
-        ) {
+    ) {
         LazyColumn {
-            items(profileData) {
-                user: UserEntity ->
+            items(profileData) { user: UserEntity ->
                 Spacer(Modifier.padding(8.dp))
                 Text(text = user.username)
                 Text(text = "@${user.name}")
@@ -80,16 +82,20 @@ fun ProfileBanner(
             onClick = navigateToEdit
         ) {
             Text(text = "Edit Profile")
-            Icon( imageVector = Icons.Filled.Edit, contentDescription = "Edit")
+            Icon(imageVector = Icons.Filled.Edit, contentDescription = "Edit")
         }
+
+        Spacer(Modifier.height(16.dp))
+        LogoutBtn()
     }
 }
 
 
 @Composable
-fun LogoutBtn(viewModel: UserViewModel = viewModel()
+fun LogoutBtn(
+    viewModel: UserViewModel = viewModel()
 ) {
-    Button(onClick = {viewModel.logout()}) {
+    Button(onClick = { viewModel.logout() }) {
         Text(text = "Log Out")
     }
 }
