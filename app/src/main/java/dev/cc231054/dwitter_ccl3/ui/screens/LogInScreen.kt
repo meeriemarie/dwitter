@@ -1,4 +1,4 @@
-package dev.cc231054.dwitter_ccl3.ui.screens
+package dev.cc231054.dwitter_ccl3.ui
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -95,10 +95,6 @@ fun LogInScreen(modifier: Modifier = Modifier,
                 currentUserState = message
                 Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
             }
-        }
-
-        if(currentUserState.isNotEmpty()) {
-            Text(text = currentUserState)
         }
     }
 

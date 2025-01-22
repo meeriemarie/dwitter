@@ -20,12 +20,13 @@ import androidx.compose.ui.unit.dp
 import dev.cc231054.dwitter_ccl3.data.PostEntity
 import dev.cc231054.dwitter_ccl3.ui.BackButton
 import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
+import java.util.UUID
 
 @Composable
 fun EditPostScreen(
     modifier: Modifier = Modifier,
     userViewModel: UserViewModel,
-    currentUserId: String,
+    currentUserId: UUID,
     postId: Int?,
     upsertPost: (PostEntity) -> Unit,
     onBackButton: () -> Unit,

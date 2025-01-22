@@ -5,11 +5,8 @@ import java.util.UUID
 
 
 @Serializable
-data class UserEntity (
+data class LikedPostEntity (
     @Serializable(with = UUIDSerializer::class)
-    val id: UUID,
-    val name: String,
-    val username: String,
-    val email: String,
-    val avatar_url: String
+    val userid: UUID,
+    val postid: Int
 )

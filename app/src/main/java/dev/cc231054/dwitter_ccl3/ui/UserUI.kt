@@ -1,5 +1,6 @@
 package dev.cc231054.dwitter_ccl3.ui
 
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -20,7 +21,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
@@ -29,10 +33,13 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,11 +56,41 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import dev.cc231054.dwitter_ccl3.data.LikedPostEntity
 import dev.cc231054.dwitter_ccl3.data.PostEntity
 import dev.cc231054.dwitter_ccl3.data.UserEntity
+import dev.cc231054.dwitter_ccl3.data.network.supabase
+import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
+import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import java.util.UUID
 
 //todo: very messy, should separate all (related) composable into separate files
+@Composable
+fun LikeButton(
+    modifier: Modifier = Modifier,
+    onLikeClick: () -> Unit,
+    isAlreadyLiked: Boolean?
+) {
+    IconButton(
+        onClick = onLikeClick,
+        modifier.padding(6.dp)
+    ) {
+        Icon(
+            imageVector = if (isAlreadyLiked == true) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+            tint = if (isAlreadyLiked == true) Color.Red else Color.White,
+            contentDescription = if (isAlreadyLiked == true) "Unlike Post" else "Like Post"
+        )
+        Log.i("LikeButton", "isAlreadyLiked: $isAlreadyLiked")
+    }
+}
+
 
 @Composable
 fun AddPostButton(
@@ -81,11 +118,11 @@ fun AddPostButton(
 @Composable
 fun BackButton(
     modifier: Modifier = Modifier,
-    onBackButton : () -> Unit,
+    onBackButton: () -> Unit,
 ) {
     Button(
         modifier = modifier,
-        onClick = {onBackButton()},
+        onClick = { onBackButton() },
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
@@ -97,18 +134,26 @@ fun BackButton(
 @Composable
 fun PostList(
     modifier: Modifier = Modifier,
-    currentUserId: String,
+    currentUserId: UUID,
     posts: List<PostEntity>,
     users: List<UserEntity>,
     onNavigate: (Int?) -> Unit,
-    deletePost: (postId: Int) -> Unit,
+    deletePost: (Int) -> Unit,
+    viewModel: UserViewModel
 ) {
+    var likedPosts by remember { mutableStateOf<List<Int>?>(null) }
+    LaunchedEffect(currentUserId) {
+        likedPosts = viewModel.getLikedPosts(currentUserId)
+        Log.i("Liked Posts", "Fetched: ${likedPosts!!.size}, userId: $currentUserId")
+        Log.i("Liked Posts", "Liked Posts: $likedPosts")
+    }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         items(posts, key = { post -> post.id ?: 0 }) { post ->
-            val user = users.find { it.id == post.userid }
+            val user = users.find { it.id.toString() == post.userid.toString() }
+            Log.i("post.id", post.id.toString())
             if (user != null) {
                 PostCard(
                     post = post,
@@ -120,7 +165,17 @@ fun PostList(
                     deletePost = {
                         deletePost(post.id!!)
                     },
-                    onNavigate = { onNavigate(it) }
+                    onNavigate = { onNavigate(it) },
+                    onLikeClick = {
+                        if (likedPosts?.contains(post.id) == true) {
+                            viewModel.unlikePost(currentUserId, post.id!!)
+                            likedPosts = likedPosts?.filter { it != post.id }
+                        } else {
+                            viewModel.likePost(post.id!!, currentUserId)
+                            likedPosts = likedPosts?.plus(post.id!!)
+                        }
+                    },
+                    isLiked = likedPosts?.contains(post.id) ?: false
                 )
             }
         }
@@ -128,14 +183,19 @@ fun PostList(
 }
 
 @Composable
-fun PostCard (
+fun PostCard(
     modifier: Modifier = Modifier,
-    currentUserId: String,
+    currentUserId: UUID,
     post: PostEntity,
     user: UserEntity,
-    deletePost : () -> Unit,
-    onNavigate: (Int?) -> Unit
+    deletePost: () -> Unit,
+    onNavigate: (Int?) -> Unit,
+    onLikeClick: () -> Unit,
+    isLiked: Boolean
 ) {
+    Log.i("UserUI userId", user.id.toString())
+    Log.i("UserUI currId", currentUserId.toString())
+    Log.i("UserUI postId", post.id.toString())
     var showFullText by remember {
         mutableStateOf(false)
     }
@@ -155,6 +215,7 @@ fun PostCard (
             }
         )
     }
+
 
     Card(
         modifier = modifier.animateContentSize(),
@@ -203,7 +264,7 @@ fun PostCard (
 
                     Text(text = annotatedString)
 
-                    if (user.id == currentUserId) {
+                    if (user.id.toString() == currentUserId.toString()) {
                         Spacer(modifier = Modifier.weight(1f))
 
                         Column {
@@ -253,6 +314,13 @@ fun PostCard (
                     painter = rememberAsyncImagePainter(post.image),
                     contentDescription = "Post Image",
                     contentScale = ContentScale.Crop
+                )
+            }
+            if (user.id.toString() != currentUserId.toString()) {
+                Spacer(modifier = Modifier.height(20.dp))
+                LikeButton(
+                    onLikeClick = { onLikeClick() },
+                    isAlreadyLiked = isLiked
                 )
             }
         }

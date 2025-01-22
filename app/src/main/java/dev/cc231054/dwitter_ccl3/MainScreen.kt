@@ -6,15 +6,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.cc231054.dwitter_ccl3.ui.AddPostButton
 import dev.cc231054.dwitter_ccl3.ui.BottomNavigationBar
+import dev.cc231054.dwitter_ccl3.ui.ProfileNav
 import dev.cc231054.dwitter_ccl3.ui.Screens
 import dev.cc231054.dwitter_ccl3.ui.screens.ContentScreen
 import dev.cc231054.dwitter_ccl3.ui.screens.EditPostScreen
@@ -29,8 +32,13 @@ fun MainScreen(
 ) {
     val posts by userViewModel.posts.observeAsState(emptyList())
     val users by userViewModel.users.observeAsState(emptyList())
-    val currentUserId by userViewModel.currentUserId.observeAsState()
+    val currentUserState by userViewModel.currentUserState.collectAsStateWithLifecycle()
 
+    LaunchedEffect(Unit) {
+        userViewModel.fetchUserId()
+        userViewModel.fetchPosts()
+        userViewModel.fetchUsers()
+    }
     Column {
         val bottomNavController = rememberNavController()
 
@@ -50,31 +58,29 @@ fun MainScreen(
         ) { innerPadding ->
             NavHost(bottomNavController, startDestination = Screens.Home.name) {
                 composable(Screens.Home.name) {
-                    LaunchedEffect(Unit) {
-                        userViewModel.fetchPosts()
-                        userViewModel.fetchUsers()
-                    }
 
                     ContentScreen(
                         modifier = modifier.padding(innerPadding),
-                        currentUserId = currentUserId ?: "",
+                        currentUserId = currentUserState.id,
                         onNavigate = {
                             bottomNavController.currentBackStackEntry?.savedStateHandle?.set(
                                 "id", it
                             )
-                            bottomNavController.navigate(Screens.Edit.name) },
+                            bottomNavController.navigate(Screens.Edit.name)
+                        },
                         users = users,
                         posts = posts,
-                        deletePost = { userViewModel.deletePost(it) }
+                        deletePost = { userViewModel.deletePost(it) },
+                        viewModel = userViewModel
                     )
                 }
                 composable(Screens.Search.name) {
                     SearchScreen(modifier.padding(innerPadding))
                 }
                 composable(Screens.Profile.name) {
-                    ProfileScreen(modifier.padding(innerPadding))
+                    ProfileNav()
                 }
-                composable(Screens.Edit.name){
+                composable(Screens.Edit.name) {
                     val postId = bottomNavController
                         .previousBackStackEntry
                         ?.savedStateHandle
@@ -83,7 +89,7 @@ fun MainScreen(
 
                     EditPostScreen(
                         Modifier.padding(innerPadding),
-                        currentUserId = currentUserId ?: "",
+                        currentUserId = currentUserState.id,
                         userViewModel = userViewModel,
                         postId = postId,
                         upsertPost = { userViewModel.upsertPost(it) },
