@@ -66,13 +66,13 @@ fun AddPostButton(
             onNavigate()
         },
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF454E62)
+            containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
         shape = RoundedCornerShape(8.dp)
     ) {
         Icon(
             imageVector = Icons.Default.AddCircle,
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
             contentDescription = "Add Post",
         )
     }
@@ -87,10 +87,10 @@ fun BackButton(
         modifier = modifier,
         onClick = {onBackButton()},
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF454E62)
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
     ) {
-        Text(text = "Cancel", color = Color.White)
+        Text(text = "Cancel", color = MaterialTheme.colorScheme.onSecondaryContainer)
     }
 }
 
@@ -103,8 +103,6 @@ fun PostList(
     onNavigate: (Int?) -> Unit,
     deletePost: (postId: Int) -> Unit,
 ) {
-
-
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -162,7 +160,7 @@ fun PostCard (
         modifier = modifier.animateContentSize(),
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF544D79)
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
         )
     ) {
         Column {
@@ -184,7 +182,7 @@ fun PostCard (
                     val annotatedString = buildAnnotatedString {
                         withStyle(
                             style = SpanStyle(
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontSize = 18.sp
                             )
                         ) {
@@ -195,7 +193,7 @@ fun PostCard (
 
                         withStyle(
                             style = SpanStyle(
-                                color = Color.White.copy(alpha = 0.75f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
                                 fontSize = 16.sp
                             )
                         ) {
@@ -214,7 +212,7 @@ fun PostCard (
                                     showDeletePostDialog = true
                                 },
                                 imageVector = Icons.Outlined.Delete,
-                                tint = Color.Red,
+                                tint = MaterialTheme.colorScheme.error,
                                 contentDescription = "Delete Post",
                             )
 
@@ -225,7 +223,7 @@ fun PostCard (
                                     onNavigate(post.id)
                                 },
                                 imageVector = Icons.Default.Edit,
-                                tint = Color.White,
+                                tint = MaterialTheme.colorScheme.primary,
                                 contentDescription = "Edit Post",
                             )
                         }
@@ -239,7 +237,7 @@ fun PostCard (
                         showFullText = !showFullText
                     },
                     text = post.post,
-                    color = Color.White.copy(alpha = 0.75f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = if (showFullText) Int.MAX_VALUE else 2,
@@ -274,7 +272,7 @@ fun DeletePostDialog(
     ) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = Color(0xFF454E62),
+            color = MaterialTheme.colorScheme.surfaceContainerHighest,
             tonalElevation = AlertDialogDefaults.TonalElevation,
             shape = RoundedCornerShape(12.dp)
         ) {
@@ -285,12 +283,12 @@ fun DeletePostDialog(
             ) {
                 Text(
                     text = "Confirm Delete",
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 Text(
                     text = "Are you sure you want to delete this post?",
-                    color = Color.White.copy(alpha = 0.75f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
                 )
 
                 Row(
@@ -302,12 +300,12 @@ fun DeletePostDialog(
                         modifier = Modifier.weight(1f),
                         onClick = { onDismiss() },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF544D79)
+                            containerColor = MaterialTheme.colorScheme.secondary
                         )
                     ) {
                         Text(
                             text = "Cancel",
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onSecondary
                         )
                     }
 
@@ -315,12 +313,12 @@ fun DeletePostDialog(
                         modifier = Modifier.weight(1f),
                         onClick = { onConfirm() },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF544D79)
+                            containerColor = MaterialTheme.colorScheme.error
                         )
                     ) {
                         Text(
                             text = "Delete",
-                            color = Color.Red
+                            color = MaterialTheme.colorScheme.onError
                         )
                     }
                 }
