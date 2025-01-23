@@ -1,6 +1,5 @@
 package dev.cc231054.dwitter_ccl3.ui
 
-import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -90,9 +89,7 @@ fun FollowButton(
     Button(
         modifier = modifier,
         onClick = {
-            // todo: implement follow user
             onFollowClick()
-            Log.d("Follow", "Follow user")
         },
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
