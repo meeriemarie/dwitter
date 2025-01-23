@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,7 @@ import dev.cc231054.dwitter_ccl3.ui.PostList
 import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
 import io.github.jan.supabase.realtime.Column
 import io.github.jan.supabase.realtime.PostgresAction
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -116,9 +118,15 @@ fun SearchScreenComponent(
     val searchText by viewModel.searchText.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
 
+    val coroutineScope = rememberCoroutineScope()
+
     var likedPosts by remember { mutableStateOf<List<Int>?>(null) }
+    var followedUsers by remember { mutableStateOf<List<UUID>?>(null) }
     LaunchedEffect(currentUserId) {
-        likedPosts = viewModel.getLikedPosts(currentUserId)
+        coroutineScope.launch {
+            likedPosts = viewModel.getLikedPosts(currentUserId)
+            followedUsers = viewModel.getFollowedUsers(currentUserId)
+        }
     }
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -160,7 +168,17 @@ fun SearchScreenComponent(
                                 likedPosts = likedPosts?.plus(post.id!!)
                             }
                         },
-                        isLiked = likedPosts?.contains(post.id) ?: false
+                        isLiked = likedPosts?.contains(post.id) ?: false,
+                        onFollowClick = {
+                            if (followedUsers?.contains(user.id) == true) {
+                                viewModel.unfollowUser(user.id, currentUserId)
+                                followedUsers = followedUsers?.filter { it != user.id }
+                            } else {
+                                viewModel.followUser(user.id, currentUserId)
+                                followedUsers = followedUsers?.plus(user.id)
+                            }
+                        },
+                        isFollowed = followedUsers?.contains(user.id) ?: false
                     )
                 }
             }
