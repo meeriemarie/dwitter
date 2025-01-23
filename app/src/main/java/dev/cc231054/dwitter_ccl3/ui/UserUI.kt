@@ -19,12 +19,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
@@ -34,7 +35,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -56,19 +56,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
-import dev.cc231054.dwitter_ccl3.data.LikedPostEntity
 import dev.cc231054.dwitter_ccl3.data.PostEntity
 import dev.cc231054.dwitter_ccl3.data.UserEntity
-import dev.cc231054.dwitter_ccl3.data.network.supabase
 import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
-import io.github.jan.supabase.postgrest.from
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import java.util.UUID
 
 //todo: very messy, should separate all (related) composable into separate files
@@ -87,7 +78,57 @@ fun LikeButton(
             tint = if (isAlreadyLiked == true) Color.Red else Color.White,
             contentDescription = if (isAlreadyLiked == true) "Unlike Post" else "Like Post"
         )
-        Log.i("LikeButton", "isAlreadyLiked: $isAlreadyLiked")
+    }
+}
+
+@Composable
+fun FollowButton(
+    modifier: Modifier = Modifier,
+    onFollowClick: () -> Unit,
+    isAlreadyFollowed: Boolean?
+) {
+    Button(
+        modifier = modifier,
+        onClick = {
+            // todo: implement follow user
+            onFollowClick()
+            Log.d("Follow", "Follow user")
+        },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (isAlreadyFollowed == false) {
+                Icon(
+                    imageVector = Icons.Default.AddCircle,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    contentDescription = "Follow User",
+                )
+
+                Spacer(modifier = Modifier.width(5.dp))
+
+                Text(
+                    text = "Follow",
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    contentDescription = "Unfollow User",
+                )
+
+                Spacer(modifier = Modifier.width(5.dp))
+
+                Text(
+                    text = "Followed",
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        }
     }
 }
 
@@ -108,7 +149,7 @@ fun AddPostButton(
         shape = RoundedCornerShape(8.dp)
     ) {
         Icon(
-            imageVector = Icons.Default.AddCircle,
+            imageVector = Icons.Default.Add,
             tint = MaterialTheme.colorScheme.onPrimaryContainer,
             contentDescription = "Add Post",
         )
@@ -142,10 +183,10 @@ fun PostList(
     viewModel: UserViewModel
 ) {
     var likedPosts by remember { mutableStateOf<List<Int>?>(null) }
+    var followedUsers by remember { mutableStateOf<List<UUID>?>(null) }
     LaunchedEffect(currentUserId) {
         likedPosts = viewModel.getLikedPosts(currentUserId)
-        Log.i("Liked Posts", "Fetched: ${likedPosts!!.size}, userId: $currentUserId")
-        Log.i("Liked Posts", "Liked Posts: $likedPosts")
+        followedUsers = viewModel.getFollowedUsers(currentUserId)
     }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -153,7 +194,6 @@ fun PostList(
     ) {
         items(posts, key = { post -> post.id ?: 0 }) { post ->
             val user = users.find { it.id.toString() == post.userid.toString() }
-            Log.i("post.id", post.id.toString())
             if (user != null) {
                 PostCard(
                     post = post,
@@ -172,10 +212,21 @@ fun PostList(
                             likedPosts = likedPosts?.filter { it != post.id }
                         } else {
                             viewModel.likePost(post.id!!, currentUserId)
-                            likedPosts = likedPosts?.plus(post.id!!)
+                            likedPosts = likedPosts?.plus(post.id)
                         }
                     },
-                    isLiked = likedPosts?.contains(post.id) ?: false
+                    onFollowClick = {
+                        if (followedUsers?.contains(user.id) == true) {
+                            viewModel.unfollowUser(user.id, currentUserId)
+                            followedUsers = followedUsers?.filter { it != user.id }
+                        } else {
+                            viewModel.followUser(user.id, currentUserId)
+                            followedUsers = followedUsers?.plus(user.id)
+                        }
+
+                    },
+                    isLiked = likedPosts?.contains(post.id) ?: false,
+                    isFollowed = followedUsers?.contains(user.id) ?: false
                 )
             }
         }
@@ -191,11 +242,10 @@ fun PostCard(
     deletePost: () -> Unit,
     onNavigate: (Int?) -> Unit,
     onLikeClick: () -> Unit,
-    isLiked: Boolean
+    onFollowClick: () -> Unit,
+    isLiked: Boolean,
+    isFollowed: Boolean
 ) {
-    Log.i("UserUI userId", user.id.toString())
-    Log.i("UserUI currId", currentUserId.toString())
-    Log.i("UserUI postId", post.id.toString())
     var showFullText by remember {
         mutableStateOf(false)
     }
@@ -220,9 +270,15 @@ fun PostCard(
     Card(
         modifier = modifier.animateContentSize(),
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-        )
+        colors = if (user.id.toString() == currentUserId.toString()) {
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            )
+        } else {
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            )
+        }
     ) {
         Column {
             Column(
@@ -254,7 +310,7 @@ fun PostCard(
 
                         withStyle(
                             style = SpanStyle(
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 16.sp
                             )
                         ) {
@@ -288,6 +344,13 @@ fun PostCard(
                                 contentDescription = "Edit Post",
                             )
                         }
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        FollowButton(
+                            onFollowClick = { onFollowClick() },
+                            isAlreadyFollowed = isFollowed
+                        )
                     }
                 }
 
@@ -298,7 +361,7 @@ fun PostCard(
                         showFullText = !showFullText
                     },
                     text = post.post,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = if (showFullText) Int.MAX_VALUE else 2,
@@ -317,7 +380,6 @@ fun PostCard(
                 )
             }
             if (user.id.toString() != currentUserId.toString()) {
-                Spacer(modifier = Modifier.height(20.dp))
                 LikeButton(
                     onLikeClick = { onLikeClick() },
                     isAlreadyLiked = isLiked
@@ -356,7 +418,7 @@ fun DeletePostDialog(
 
                 Text(
                     text = "Are you sure you want to delete this post?",
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
                 Row(
@@ -368,12 +430,12 @@ fun DeletePostDialog(
                         modifier = Modifier.weight(1f),
                         onClick = { onDismiss() },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
                         )
                     ) {
                         Text(
                             text = "Cancel",
-                            color = MaterialTheme.colorScheme.onSecondary
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     }
 
@@ -381,12 +443,12 @@ fun DeletePostDialog(
                         modifier = Modifier.weight(1f),
                         onClick = { onConfirm() },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
+                            containerColor = MaterialTheme.colorScheme.errorContainer
                         )
                     ) {
                         Text(
                             text = "Delete",
-                            color = MaterialTheme.colorScheme.onError
+                            color = MaterialTheme.colorScheme.onErrorContainer
                         )
                     }
                 }

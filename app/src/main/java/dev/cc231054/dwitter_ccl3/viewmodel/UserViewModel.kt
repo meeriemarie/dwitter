@@ -8,9 +8,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.cc231054.dwitter_ccl3.data.FollowingEntity
 import dev.cc231054.dwitter_ccl3.data.LikedPostEntity
-import dev.cc231054.dwitter_ccl3.data.UUIDSerializer
 import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.data.model.UserState
 import dev.cc231054.dwitter_ccl3.data.network.supabase
@@ -22,12 +21,9 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import org.jetbrains.annotations.Async.Execute
 import java.util.UUID
 
 // todo: viewmodel needs refactoring, api calls should be in repository
@@ -37,14 +33,22 @@ class UserViewModel : ViewModel() {
     val userState: State<UserState> = _userState
 
     private val _currentUser =
-        MutableStateFlow<UserEntity>(UserEntity(UUID(-1, -1), "", "", "", ""))
+        MutableStateFlow(UserEntity(UUID(0, 0), "", "", "", ""))
     val currentUserState: StateFlow<UserEntity> = _currentUser
+
+    private val _currentUserId = MutableLiveData<String?>(null)
+    val currentUserId: LiveData<String?> get() = _currentUserId
+
+    private val _userProfile = MutableStateFlow<List<UserEntity>>(emptyList())
+    val userProfile: StateFlow<List<UserEntity>> get() = _userProfile
 
     private val _users = MutableLiveData<List<UserEntity>>(emptyList())
     val users: LiveData<List<UserEntity>> get() = _users
 
-    private val _userProfile = MutableStateFlow<List<UserEntity>>(emptyList())
-    val userProfile: StateFlow<List<UserEntity>> get() = _userProfile
+    private val _posts = MutableLiveData<List<PostEntity>>()
+    val posts: LiveData<List<PostEntity>> get() = _posts
+
+
 
     fun unlikePost(
         userId: UUID,
@@ -119,13 +123,71 @@ class UserViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val likedPost = LikedPostEntity(userId, postId)
-                val result = supabase.from("liked_posts").insert(likedPost)
+                val result = supabase.from("liked_posts")
+                    .insert(likedPost)
                 _userState.value = UserState.Success("Liked successfully!")
             } catch (e: Exception) {
                 _userState.value = UserState.Error("Error: ${e.message}")
             }
         }
     }
+
+    fun unfollowUser(
+        followedId: UUID,
+        userid: UUID
+    ) {
+        viewModelScope.launch {
+            try {
+                val result = supabase.from("following").delete {
+                    filter {
+                        eq("followedid", followedId)
+                        eq("userid", userid)
+                    }
+                }
+                _userState.value = UserState.Success("Unfollowed successfully!")
+            } catch (e: Exception) {
+                _userState.value = UserState.Error("Error: ${e.message}")
+            }
+        }
+    }
+
+    fun followUser(
+        followedId: UUID,
+        userid: UUID
+    ) {
+        viewModelScope.launch {
+            try {
+                val following = FollowingEntity(followedId, userid)
+                val result = supabase.from("following")
+                    .insert(
+                        following
+                    )
+                _userState.value = UserState.Success("Followed successfully!")
+            } catch (e: Exception) {
+                _userState.value = UserState.Error("Error: ${e.message}")
+            }
+        }
+    }
+
+    suspend fun getFollowedUsers(userId: UUID): List<UUID> {
+        return try {
+            val fetchedUsers = supabase.from("following")
+                .select(columns = Columns.list("followedid")) {
+                    filter {
+                        eq("userid", userId)
+                    }
+                }.decodeList<Map<String, UUID>>()
+            fetchedUsers.mapNotNull { it["followedid"] }.also {
+                Log.i("fetched users", "UserId: $userId, Fetched users: $it")
+            }
+        } catch (e: Exception) {
+            _userState.value = UserState.Error("Error: ${e.message}")
+            Log.i("Error", e.message.toString())
+            emptyList()
+        }
+    }
+
+
 
     private fun reloadProfile() {
         viewModelScope.launch {
@@ -175,33 +237,7 @@ class UserViewModel : ViewModel() {
 
     }
 
-    private val _posts = MutableLiveData<List<PostEntity>>()
-    val posts: LiveData<List<PostEntity>> get() = _posts
-
-    private val _currentUserId = MutableLiveData<String?>(null)
-    val currentUserId: LiveData<String?> get() = _currentUserId
-
-    init {
-        viewModelScope.launch {
-            try {
-
-                // do not call fetchUsers() and fetchPosts() in init
-                // use launchEffect in the Screen itself
-                // it WILL clash with the editUser page
-                // maybe refactoring and making it pretty
-                //fetchUsers()
-
-                //fetchPosts()
-
-                fetchCurrentUserId()
-
-            } catch (e: Exception) {
-                Log.e("UserViewModel", "Error: ${e.message}")
-            }
-        }
-    }
-
-    private suspend fun fetchCurrentUserId() {
+    suspend fun fetchCurrentUserId() {
         val fetchedCurrentUserId =
             supabase.auth.retrieveUserForCurrentSession(updateSession = true).id
         _currentUserId.value = fetchedCurrentUserId
@@ -261,8 +297,6 @@ class UserViewModel : ViewModel() {
                 }
                 saveToken(context)
                 _userState.value = UserState.Success("Logged in successfully!")
-                val currentUser = _users.value?.find { it.email === userEmail };
-                _currentUser.value = currentUser!!;
             } catch (e: Exception) {
                 _userState.value = UserState.Error("Error: ${e.message}")
             }
@@ -311,7 +345,7 @@ class UserViewModel : ViewModel() {
         }
     }
 
-    suspend fun fetchUserId() {
+    suspend fun fetchUser() {
         val userId = supabase.auth.currentUserOrNull()?.id
         if (userId != null) {
             val profileData = supabase.from("profiles")

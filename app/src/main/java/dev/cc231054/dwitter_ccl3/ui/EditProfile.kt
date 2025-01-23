@@ -27,13 +27,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.data.model.UserState
 import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
-import kotlinx.coroutines.flow.collect
 
 @Composable
 fun EditProfileScreen(
     viewModel: UserViewModel = viewModel(),
     onSaveClick: () -> Unit
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.fetchUser()
+    }
     val state by viewModel.currentUserState.collectAsStateWithLifecycle();
     EditProfile(
         navigateToProfile = onSaveClick,
@@ -42,10 +44,11 @@ fun EditProfileScreen(
 
 
 @Composable
-fun EditProfile(modifier: Modifier = Modifier,
-                 viewModel: UserViewModel = viewModel(),
-                 navigateToProfile: () -> Unit,
-                userEntity: UserEntity
+fun EditProfile(
+    modifier: Modifier = Modifier,
+    viewModel: UserViewModel = viewModel(),
+    navigateToProfile: () -> Unit,
+    userEntity: UserEntity
 ) {
     val userState by viewModel.userState
     val context = LocalContext.current
@@ -61,6 +64,8 @@ fun EditProfile(modifier: Modifier = Modifier,
         userAvatar = userEntity.avatar_url
         userName = userEntity.name
         userUsername = userEntity.username
+
+        Log.d("EditProfile", "UserEntity: $userEntity")
     }
 
 
@@ -71,6 +76,7 @@ fun EditProfile(modifier: Modifier = Modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         TextField(
+            label = { Text("Name") },
             value = userName,
             onValueChange = {userName= it},
             modifier = Modifier.fillMaxWidth()
@@ -79,6 +85,7 @@ fun EditProfile(modifier: Modifier = Modifier,
         Spacer(modifier = Modifier.height(8.dp))
 
         TextField(
+            label = { Text("Username") },
             value = userUsername,
             onValueChange = {userUsername= it},
             modifier = Modifier.fillMaxWidth()
@@ -87,6 +94,7 @@ fun EditProfile(modifier: Modifier = Modifier,
         Spacer(modifier = Modifier.height(8.dp))
 
         TextField(
+            label = { Text("Avatar URL") },
             value = userAvatar,
             onValueChange = {userAvatar= it},
             modifier = Modifier.fillMaxWidth()

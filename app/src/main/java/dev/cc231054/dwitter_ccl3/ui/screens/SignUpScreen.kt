@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -110,8 +112,13 @@ fun SignUpScreen(modifier: Modifier = Modifier,
         Spacer(modifier = Modifier.height(8.dp))
         Text(text = "Already have an account?")
 
-        Button(onClick = navigateToLogin) {
-            Text(text = "Log In")
+        Button(
+            onClick = navigateToLogin,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer
+            )
+        ) {
+            Text(text = "Log In", color = MaterialTheme.colorScheme.onSecondaryContainer)
         }
 
         when(userState) {
