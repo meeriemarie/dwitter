@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -90,43 +91,25 @@ fun FollowButton(
 ) {
     Button(
         modifier = modifier,
-        onClick = {
-            onFollowClick()
-        },
+        onClick = { onFollowClick() },
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
-        )
+        ),
+        contentPadding = PaddingValues(0.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (isAlreadyFollowed == false) {
-                Icon(
-                    imageVector = Icons.Default.AddCircle,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    contentDescription = "Follow User",
-                )
-
-                Spacer(modifier = Modifier.width(5.dp))
-
-                Text(
-                    text = "Follow",
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    contentDescription = "Unfollow User",
-                )
-
-                Spacer(modifier = Modifier.width(5.dp))
-
-                Text(
-                    text = "Followed",
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
+        if (isAlreadyFollowed == false) {
+            Icon(
+                imageVector = Icons.Default.AddCircle,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                contentDescription = "Follow User",
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                contentDescription = "Unfollow User",
+            )
         }
     }
 }
@@ -135,7 +118,7 @@ fun FollowButton(
 @Composable
 fun AddPostButton(
     modifier: Modifier = Modifier,
-    onNavigate : () -> Unit,
+    onNavigate: () -> Unit,
 ) {
     Button(
         modifier = modifier.size(72.dp),
