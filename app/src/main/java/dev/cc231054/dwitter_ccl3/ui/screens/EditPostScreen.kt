@@ -1,11 +1,12 @@
 package dev.cc231054.dwitter_ccl3.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -69,11 +70,13 @@ fun EditPostScreen(
         Button(
             onClick = {
                 upsertPost(toUpsertPost)
-                Log.d("EditPostScreen", "Post: $post")
                 onBackButton()
             },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
         ) {
-            Text("Save")
+            Text("Save", color = MaterialTheme.colorScheme.onPrimary)
         }
     }
 }

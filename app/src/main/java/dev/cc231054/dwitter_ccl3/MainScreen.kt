@@ -6,12 +6,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -21,25 +21,24 @@ import dev.cc231054.dwitter_ccl3.ui.ProfileNav
 import dev.cc231054.dwitter_ccl3.ui.Screens
 import dev.cc231054.dwitter_ccl3.ui.screens.ContentScreen
 import dev.cc231054.dwitter_ccl3.ui.screens.EditPostScreen
-import dev.cc231054.dwitter_ccl3.ui.screens.MainSearch
-import dev.cc231054.dwitter_ccl3.ui.screens.ProfileScreen
 import dev.cc231054.dwitter_ccl3.ui.screens.SearchScreen
 import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
 
 @Composable
 fun MainScreen(
+    mainNavController: NavController,
     modifier: Modifier = Modifier,
     userViewModel: UserViewModel = viewModel(),
 ) {
-    val posts by userViewModel.posts.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) {
+        userViewModel.fetchUser()
+        userViewModel.fetchCurrentUserId()
+    }
+
+    val posts by userViewModel.searchedPosts.observeAsState(emptyList())
     val users by userViewModel.users.observeAsState(emptyList())
     val currentUserState by userViewModel.currentUserState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        userViewModel.fetchUserId()
-        userViewModel.fetchPosts()
-        userViewModel.fetchUsers()
-    }
     Column {
         val bottomNavController = rememberNavController()
 
@@ -59,6 +58,13 @@ fun MainScreen(
         ) { innerPadding ->
             NavHost(bottomNavController, startDestination = Screens.Home.name) {
                 composable(Screens.Home.name) {
+
+                    // LaunchedEffect is used to ensure livedata is updated
+                    // (probably a more intuitive way of doing it, but it works for now)
+                    LaunchedEffect(Unit) {
+                        userViewModel.fetchPosts()
+                        userViewModel.fetchUsers()
+                    }
 
                     ContentScreen(
                         modifier = modifier.padding(innerPadding),
@@ -91,7 +97,7 @@ fun MainScreen(
                     )
                 }
                 composable(Screens.Profile.name) {
-                    ProfileNav()
+                    ProfileNav(mainNavController = mainNavController)
                 }
                 composable(Screens.Edit.name) {
                     val postId = bottomNavController

@@ -1,5 +1,6 @@
 package dev.cc231054.dwitter_ccl3.ui
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -79,8 +82,13 @@ fun LogInScreen(
         Spacer(modifier = Modifier.height(8.dp))
         Text(text = "Don't have an account?")
 
-        Button(onClick = navigateToSignup) {
-            Text(text = "Sign Up")
+        Button(
+            onClick = navigateToSignup,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer
+            )
+        ) {
+            Text(text = "Sign Up", color = MaterialTheme.colorScheme.onSecondaryContainer)
         }
 
         when (userState) {
@@ -95,6 +103,7 @@ fun LogInScreen(
             }
 
             is UserState.Error -> {
+                Log.d("LogInScreen", "Error: ${(userState as UserState.Error).message}")
                 val message = (userState as UserState.Error).message
                 currentUserState = message
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()

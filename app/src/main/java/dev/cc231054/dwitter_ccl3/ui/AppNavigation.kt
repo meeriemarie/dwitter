@@ -2,16 +2,11 @@ package dev.cc231054.dwitter_ccl3.ui
 
 import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.cc231054.dwitter_ccl3.MainScreen
-import dev.cc231054.dwitter_ccl3.data.model.UserState
 import dev.cc231054.dwitter_ccl3.ui.screens.LoginHandlerScreen
-import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
 
 @Composable
 fun AppNavigation(
@@ -28,7 +23,7 @@ fun AppNavigation(
             )
         }
         composable("mainApp") {
-            MainScreen()
+            MainScreen(mainNavController = navController)
         }
 
         composable("loginPage") {
