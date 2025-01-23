@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -44,7 +45,7 @@ import io.github.jan.supabase.realtime.PostgresAction
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+
 @Composable
 fun SearchScreen(
     currentUserId: UUID,
@@ -55,51 +56,55 @@ fun SearchScreen(
     viewModel: UserViewModel,
     modifier: Modifier = Modifier
 ) {
-    Scaffold(
-        topBar = { AppBar(viewModel) },
-        content = {
-            Column(
-                modifier = modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Spacer(modifier = Modifier.height(32.dp))
-                MainSearch(
-                    currentUserId = currentUserId,
-                    onNavigate = { onNavigate(it) },
-                    posts = posts,
-                    users = users,
-                    deletePost = { deletePost(it) },
-                    viewModel = viewModel,
-                    modifier = modifier.padding(vertical = 32.dp)
-                )
-            }
+    val searchText by viewModel.searchText.collectAsState()
+    Column(
+        modifier = modifier.padding(16.dp),
+        verticalArrangement = Arrangement.Center
 
-        }
-    )
+    ) {
+        TextField(
+            value = searchText,
+            onValueChange = { viewModel.onSearchTextChange(it) },
+            placeholder = { Text("Search for posts") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp),
+            trailingIcon = {
+                IconButton(onClick = { viewModel.onToggleSearch() }) {
+                    Icon(Icons.Default.Search, contentDescription = "Search")
+                }
+            }
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        MainSearch(
+            currentUserId = currentUserId,
+            onNavigate = { onNavigate(it) },
+            users = users,
+            deletePost = { deletePost(it) },
+            viewModel = viewModel
+        )
+    }
+
 }
 
 
 @Composable
 fun MainSearch(
     currentUserId: UUID,
-    posts: List<PostEntity>,
     users: List<UserEntity>,
     viewModel: UserViewModel,
     onNavigate: (Int?) -> Unit,
     deletePost: (Int) -> Unit,
-    modifier: Modifier
 ) {
     val isSearching by viewModel.isSearching.collectAsState()
 
     if (isSearching) {
         SearchScreenComponent(
             currentUserId = currentUserId,
-            posts = posts,
             users = users,
             viewModel = viewModel,
             onNavigate = onNavigate,
             deletePost = deletePost,
-            modifier = modifier
         )
     }
 }
@@ -107,15 +112,12 @@ fun MainSearch(
 
 @Composable
 fun SearchScreenComponent(
-    modifier: Modifier = Modifier,
     viewModel: UserViewModel = viewModel(),
     currentUserId: UUID,
-    posts: List<PostEntity>,
     users: List<UserEntity>,
     onNavigate: (Int?) -> Unit,
     deletePost: (Int) -> Unit
 ) {
-    val searchText by viewModel.searchText.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
@@ -128,65 +130,52 @@ fun SearchScreenComponent(
             followedUsers = viewModel.getFollowedUsers(currentUserId)
         }
     }
-
-    Column(modifier = modifier.fillMaxSize()) {
-
-        TextField(
-            value = searchText,
-            onValueChange = { viewModel.onSearchTextChange(it) },
-            placeholder = { Text("Search for posts") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(6.dp)
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(searchResults, key = { post -> post.id ?: 0 }) { post ->
-                val user = users.find { it.id.toString() == post.userid.toString() }
-                if (user != null) {
-                    PostCard(
-                        post = post,
-                        user = user,
-                        currentUserId = currentUserId,
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .fillMaxWidth(0.8f),
-                        deletePost = {
-                            deletePost(post.id!!)
-                        },
-                        onNavigate = { onNavigate(it) },
-                        onLikeClick = {
-                            if (likedPosts?.contains(post.id) == true) {
-                                viewModel.unlikePost(currentUserId, post.id!!)
-                                likedPosts = likedPosts?.filter { it != post.id }
-                            } else {
-                                viewModel.likePost(post.id!!, currentUserId)
-                                likedPosts = likedPosts?.plus(post.id!!)
-                            }
-                        },
-                        isLiked = likedPosts?.contains(post.id) ?: false,
-                        onFollowClick = {
-                            if (followedUsers?.contains(user.id) == true) {
-                                viewModel.unfollowUser(user.id, currentUserId)
-                                followedUsers = followedUsers?.filter { it != user.id }
-                            } else {
-                                viewModel.followUser(user.id, currentUserId)
-                                followedUsers = followedUsers?.plus(user.id)
-                            }
-                        },
-                        isFollowed = followedUsers?.contains(user.id) ?: false
-                    )
-                }
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        items(searchResults, key = { post -> post.id ?: 0 }) { post ->
+            val user = users.find { it.id.toString() == post.userid.toString() }
+            if (user != null) {
+                PostCard(
+                    post = post,
+                    user = user,
+                    currentUserId = currentUserId,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxWidth(0.8f),
+                    deletePost = {
+                        deletePost(post.id!!)
+                    },
+                    onNavigate = { onNavigate(it) },
+                    onLikeClick = {
+                        if (likedPosts?.contains(post.id) == true) {
+                            viewModel.unlikePost(currentUserId, post.id!!)
+                            likedPosts = likedPosts?.filter { it != post.id }
+                        } else {
+                            viewModel.likePost(post.id!!, currentUserId)
+                            likedPosts = likedPosts?.plus(post.id!!)
+                        }
+                    },
+                    isLiked = likedPosts?.contains(post.id) ?: false,
+                    onFollowClick = {
+                        if (followedUsers?.contains(user.id) == true) {
+                            viewModel.unfollowUser(user.id, currentUserId)
+                            followedUsers = followedUsers?.filter { it != user.id }
+                        } else {
+                            viewModel.followUser(user.id, currentUserId)
+                            followedUsers = followedUsers?.plus(user.id)
+                        }
+                    },
+                    isFollowed = followedUsers?.contains(user.id) ?: false
+                )
             }
-
         }
+
     }
 }
 
+/*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppBar(viewModel: UserViewModel) {
@@ -199,3 +188,5 @@ fun AppBar(viewModel: UserViewModel) {
         }
     )
 }
+
+ */
