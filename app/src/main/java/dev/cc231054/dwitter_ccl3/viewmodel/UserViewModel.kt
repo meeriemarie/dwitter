@@ -56,7 +56,7 @@ class UserViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                val result = supabase.from("liked_posts").delete {
+                supabase.from("liked_posts").delete {
                     filter {
                         eq("userid", userId)
                         eq("postid", postId)
@@ -88,33 +88,33 @@ class UserViewModel : ViewModel() {
     }
 
 
-    fun checkIfLiked(
-        postId: Int,
-        userId: UUID,
-        onResult: (Boolean) -> Unit
-    ) {
-        viewModelScope.launch {
-            try {
-                val result = supabase.from("liked_posts")
-                    .select() {
-                        filter {
-                            eq("userid", userId)
-                            eq("postid", postId)
-                        }
-                    }
-                if (result.data != null && result.data.isNotEmpty()) {
-                    onResult(true)
-                    _userState.value = UserState.Success("Liked")
-                } else {
-                    onResult(false)
-                    _userState.value = UserState.Error("Not Liked")
-                }
-            } catch (e: Exception) {
-                _userState.value = UserState.Error("Error: ${e.message}")
-                onResult(false)
-            }
-        }
-    }
+//    fun checkIfLiked(
+//        postId: Int,
+//        userId: UUID,
+//        onResult: (Boolean) -> Unit
+//    ) {
+//        viewModelScope.launch {
+//            try {
+//                val result = supabase.from("liked_posts")
+//                    .select() {
+//                        filter {
+//                            eq("userid", userId)
+//                            eq("postid", postId)
+//                        }
+//                    }
+//                if (result.data != null && result.data.isNotEmpty()) {
+//                    onResult(true)
+//                    _userState.value = UserState.Success("Liked")
+//                } else {
+//                    onResult(false)
+//                    _userState.value = UserState.Error("Not Liked")
+//                }
+//            } catch (e: Exception) {
+//                _userState.value = UserState.Error("Error: ${e.message}")
+//                onResult(false)
+//            }
+//        }
+//    }
 
     fun likePost(
         postId: Int,
@@ -123,7 +123,7 @@ class UserViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val likedPost = LikedPostEntity(userId, postId)
-                val result = supabase.from("liked_posts")
+                supabase.from("liked_posts")
                     .insert(likedPost)
                 _userState.value = UserState.Success("Liked successfully!")
             } catch (e: Exception) {
@@ -138,7 +138,7 @@ class UserViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                val result = supabase.from("following").delete {
+                supabase.from("following").delete {
                     filter {
                         eq("followedid", followedId)
                         eq("userid", userid)
@@ -158,7 +158,7 @@ class UserViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val following = FollowingEntity(followedId, userid)
-                val result = supabase.from("following")
+                supabase.from("following")
                     .insert(
                         following
                     )
@@ -192,16 +192,14 @@ class UserViewModel : ViewModel() {
     private fun reloadProfile() {
         viewModelScope.launch {
             try {
-                if (currentUserId != null) {
-                    val profile = supabase.from("profiles")
-                        .select() {
-                            filter {
-                                eq("id", currentUserId)
-                            }
+                supabase.from("profiles")
+                    .select() {
+                        filter {
+                            eq("id", currentUserId)
                         }
-                        .decodeList<UserEntity>()
-                    _userState.value = UserState.Success("Successfully reloaded data")
-                }
+                    }
+                    .decodeList<UserEntity>()
+                _userState.value = UserState.Success("Successfully reloaded data")
             } catch (e: Exception) {
                 _userState.value = UserState.Error("Error: ${e.message}")
 

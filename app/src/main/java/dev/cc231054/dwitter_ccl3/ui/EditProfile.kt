@@ -36,7 +36,7 @@ fun EditProfileScreen(
     LaunchedEffect(Unit) {
         viewModel.fetchUser()
     }
-    val state by viewModel.currentUserState.collectAsStateWithLifecycle();
+    val state by viewModel.currentUserState.collectAsStateWithLifecycle()
     EditProfile(
         navigateToProfile = onSaveClick,
         userEntity = state)

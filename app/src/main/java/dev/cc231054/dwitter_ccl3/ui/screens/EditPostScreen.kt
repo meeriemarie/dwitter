@@ -1,6 +1,5 @@
 package dev.cc231054.dwitter_ccl3.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
