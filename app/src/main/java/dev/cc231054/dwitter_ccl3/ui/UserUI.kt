@@ -42,6 +42,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,6 +60,7 @@ import coil.compose.rememberAsyncImagePainter
 import dev.cc231054.dwitter_ccl3.data.PostEntity
 import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 //todo: very messy, should separate all (related) composable into separate files
@@ -179,11 +181,15 @@ fun PostList(
     deletePost: (Int) -> Unit,
     viewModel: UserViewModel
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     var likedPosts by remember { mutableStateOf<List<Int>?>(null) }
     var followedUsers by remember { mutableStateOf<List<UUID>?>(null) }
     LaunchedEffect(currentUserId) {
-        likedPosts = viewModel.getLikedPosts(currentUserId)
-        followedUsers = viewModel.getFollowedUsers(currentUserId)
+        coroutineScope.launch {
+            likedPosts = viewModel.getLikedPosts(currentUserId)
+            followedUsers = viewModel.getFollowedUsers(currentUserId)
+        }
     }
     LazyColumn(
         modifier = modifier.fillMaxSize(),

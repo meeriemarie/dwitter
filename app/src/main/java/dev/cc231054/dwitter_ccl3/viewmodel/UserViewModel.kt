@@ -10,10 +10,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.cc231054.dwitter_ccl3.data.FollowingEntity
 import dev.cc231054.dwitter_ccl3.data.LikedPostEntity
+import dev.cc231054.dwitter_ccl3.data.PostEntity
 import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.data.model.UserState
 import dev.cc231054.dwitter_ccl3.data.network.supabase
-import dev.cc231054.dwitter_ccl3.data.PostEntity
 import dev.cc231054.dwitter_ccl3.utils.SharedPreferenceHelper
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
@@ -49,7 +49,6 @@ class UserViewModel : ViewModel() {
     val posts: LiveData<List<PostEntity>> get() = _posts
 
 
-
     fun unlikePost(
         userId: UUID,
         postId: Int
@@ -80,41 +79,13 @@ class UserViewModel : ViewModel() {
             fetchedPosts.mapNotNull { it["postid"] }.also {
                 Log.i("fetched posts", "UserId: $userId, Fetched posts: $it")
             }
+
         } catch (e: Exception) {
             _userState.value = UserState.Error("Error: ${e.message}")
             Log.i("Error", e.message.toString())
             emptyList()
         }
     }
-
-
-//    fun checkIfLiked(
-//        postId: Int,
-//        userId: UUID,
-//        onResult: (Boolean) -> Unit
-//    ) {
-//        viewModelScope.launch {
-//            try {
-//                val result = supabase.from("liked_posts")
-//                    .select() {
-//                        filter {
-//                            eq("userid", userId)
-//                            eq("postid", postId)
-//                        }
-//                    }
-//                if (result.data != null && result.data.isNotEmpty()) {
-//                    onResult(true)
-//                    _userState.value = UserState.Success("Liked")
-//                } else {
-//                    onResult(false)
-//                    _userState.value = UserState.Error("Not Liked")
-//                }
-//            } catch (e: Exception) {
-//                _userState.value = UserState.Error("Error: ${e.message}")
-//                onResult(false)
-//            }
-//        }
-//    }
 
     fun likePost(
         postId: Int,
@@ -172,22 +143,20 @@ class UserViewModel : ViewModel() {
     suspend fun getFollowedUsers(userId: UUID): List<UUID> {
         return try {
             val fetchedUsers = supabase.from("following")
-                .select(columns = Columns.list("followedid")) {
+                .select(columns = Columns.list("followedid", "userid")) {
                     filter {
                         eq("userid", userId)
                     }
-                }.decodeList<Map<String, UUID>>()
-            fetchedUsers.mapNotNull { it["followedid"] }.also {
+                }.decodeList<FollowingEntity>()
+            fetchedUsers.map { it.followedid }.also {
                 Log.i("fetched users", "UserId: $userId, Fetched users: $it")
             }
         } catch (e: Exception) {
             _userState.value = UserState.Error("Error: ${e.message}")
-            Log.i("Error", e.message.toString())
+            Log.i("Error follow", e.message.toString())
             emptyList()
         }
     }
-
-
 
     private fun reloadProfile() {
         viewModelScope.launch {
