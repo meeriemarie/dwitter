@@ -18,10 +18,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.cc231054.dwitter_ccl3.ui.AddPostButton
 import dev.cc231054.dwitter_ccl3.ui.BottomNavigationBar
-import dev.cc231054.dwitter_ccl3.ui.ProfileNav
 import dev.cc231054.dwitter_ccl3.ui.Screens
 import dev.cc231054.dwitter_ccl3.ui.screens.ContentScreen
 import dev.cc231054.dwitter_ccl3.ui.screens.EditPostScreen
+import dev.cc231054.dwitter_ccl3.ui.screens.ProfileNav
 import dev.cc231054.dwitter_ccl3.ui.screens.SearchScreen
 import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
 
@@ -61,7 +61,7 @@ fun MainScreen(
             NavHost(bottomNavController, startDestination = Screens.Home.name) {
                 composable(Screens.Home.name) {
 
-                    // LaunchedEffect is used to ensure livedata is updated
+                    // LaunchedEffect is used to ensure ui is updated
                     // (probably a more intuitive way of doing it, but it works for now)
                     LaunchedEffect(Unit) {
                         userViewModel.fetchPosts()
@@ -102,7 +102,21 @@ fun MainScreen(
                     )
                 }
                 composable(Screens.Profile.name) {
-                    ProfileNav(mainNavController = mainNavController)
+                    ProfileNav(
+                        mainNavController = mainNavController,
+                        modifier = modifier.padding(innerPadding),
+                        currentUserId = currentUserState.id,
+                        onNavigate = {
+                            bottomNavController.currentBackStackEntry?.savedStateHandle?.set(
+                                "id", it
+                            )
+                            bottomNavController.navigate(Screens.Profile.name)
+                        },
+                        users = users,
+                        posts = posts,
+                        deletePost = { userViewModel.deletePost(it) },
+                        viewModel = userViewModel
+                    )
                 }
                 composable(Screens.Edit.name) {
                     val postId = bottomNavController

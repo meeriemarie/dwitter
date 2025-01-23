@@ -19,6 +19,8 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.query.Order
+import io.github.jan.supabase.postgrest.query.Order.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -386,7 +388,11 @@ class UserViewModel : ViewModel() {
     suspend fun fetchPosts() {
         try {
             val fetchedPosts = supabase.from("posts")
-                .select()
+                .select() {
+                    order(
+                        column = "id", order = DESCENDING
+                    )
+                }
                 .decodeList<PostEntity>()
             _posts.value = fetchedPosts
             _userState.value = UserState.Success("Posts fetched successfully!")

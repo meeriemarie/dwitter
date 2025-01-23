@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -56,9 +57,11 @@ fun SearchScreen(
     viewModel: UserViewModel,
     modifier: Modifier = Modifier
 ) {
+
     val searchText by viewModel.searchText.collectAsState()
     Column {
         Column(
+            // More Padding
             modifier = Modifier.padding(16.dp)
         ) {
             TextField(
@@ -70,7 +73,10 @@ fun SearchScreen(
                     .padding(6.dp),
                 trailingIcon = {
                     IconButton(onClick = { viewModel.onToggleSearch() }) {
-                        Icon(Icons.Default.Search, contentDescription = "Search")
+                        Icon(
+                            contentDescription = "Search",
+                            imageVector = Icons.Default.Search
+                        )
                     }
                 }
             )
