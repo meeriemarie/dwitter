@@ -57,24 +57,24 @@ fun SearchScreen(
     modifier: Modifier = Modifier
 ) {
     val searchText by viewModel.searchText.collectAsState()
-    Column(
-        modifier = modifier.padding(16.dp),
-        verticalArrangement = Arrangement.Center
-
-    ) {
-        TextField(
-            value = searchText,
-            onValueChange = { viewModel.onSearchTextChange(it) },
-            placeholder = { Text("Search for posts") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(6.dp),
-            trailingIcon = {
-                IconButton(onClick = { viewModel.onToggleSearch() }) {
-                    Icon(Icons.Default.Search, contentDescription = "Search")
+    Column {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            TextField(
+                value = searchText,
+                onValueChange = { viewModel.onSearchTextChange(it) },
+                placeholder = { Text("Search for posts") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(6.dp),
+                trailingIcon = {
+                    IconButton(onClick = { viewModel.onToggleSearch() }) {
+                        Icon(Icons.Default.Search, contentDescription = "Search")
+                    }
                 }
-            }
-        )
+            )
+        }
         Spacer(modifier = Modifier.height(32.dp))
         MainSearch(
             currentUserId = currentUserId,
@@ -84,7 +84,6 @@ fun SearchScreen(
             viewModel = viewModel
         )
     }
-
 }
 
 

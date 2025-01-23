@@ -87,6 +87,7 @@ fun MainScreen(
                 }
                 composable(Screens.Search.name) {
                     SearchScreen(
+                        modifier = modifier.padding(innerPadding),
                         currentUserId = currentUserState.id,
                         onNavigate = {
                             bottomNavController.currentBackStackEntry?.savedStateHandle?.set(
