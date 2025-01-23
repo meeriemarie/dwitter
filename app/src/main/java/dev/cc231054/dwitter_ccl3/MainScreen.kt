@@ -1,5 +1,6 @@
 package dev.cc231054.dwitter_ccl3
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -35,7 +36,8 @@ fun MainScreen(
         userViewModel.fetchCurrentUserId()
     }
 
-    val posts by userViewModel.searchedPosts.observeAsState(emptyList())
+    val searchedPosts by userViewModel.searchedPosts.observeAsState(emptyList())
+    val posts by userViewModel.posts.collectAsStateWithLifecycle(emptyList())
     val users by userViewModel.users.observeAsState(emptyList())
     val currentUserState by userViewModel.currentUserState.collectAsStateWithLifecycle()
 
@@ -64,6 +66,8 @@ fun MainScreen(
                     LaunchedEffect(Unit) {
                         userViewModel.fetchPosts()
                         userViewModel.fetchUsers()
+
+                        Log.d("MainScreen", userViewModel.users.value.toString())
                     }
 
                     ContentScreen(
@@ -91,7 +95,7 @@ fun MainScreen(
                             bottomNavController.navigate(Screens.Edit.name)
                         },
                         users = users,
-                        posts = posts,
+                        posts = searchedPosts,
                         deletePost = { userViewModel.deletePost(it) },
                         viewModel = userViewModel
                     )
