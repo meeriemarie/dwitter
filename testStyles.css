@@ -1,0 +1,57 @@
+    body {
+        counter-reset: h2counter;
+        background-color: azure;
+    }
+    h1 {
+        counter-reset: h2counter;
+        font-family: "DM Serif Text", serif;
+    }
+    h2:before {
+        content: counter(h2counter) ".\0000a0\0000a0";
+        counter-increment: h2counter;
+    }
+    
+    .main {
+        margin: auto;
+        padding: 2vw;
+        width: 50%;
+        font-family: 'Markazi Text', serif;
+    }
+
+    .caption {
+        text-align: center;
+        margin-bottom: 4vh;
+        font-size: xx-large;
+    }
+
+    .subtitle {
+        font-size: large;
+        margin-top: 3vh;
+        font-size:x-large;
+    }
+    
+    .content {
+        margin-left: 3vw;
+        font-size: large;
+    }
+
+    .nested {
+        margin-left: 3vw;
+    }
+
+    .descriptor {
+        margin-top: 1vh;
+    }
+
+    .table {
+        border-collapse: collapse;
+        border: 2px solid;
+        margin-top: 2vh;
+        text-align: center;
+        font-size: large;
+    }
+
+    th, td {
+        border: 1px solid;
+        padding: 8px;
+    }
