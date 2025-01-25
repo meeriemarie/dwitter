@@ -1,5 +1,6 @@
 package dev.cc231054.dwitter_ccl3.ui
 
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -175,7 +176,8 @@ fun PostList(
         }
     }
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         items(posts, key = { post -> post.id ?: 0 }) { post ->
@@ -254,7 +256,12 @@ fun PostCard(
 
 
     Card(
-        modifier = modifier.animateContentSize(),
+        modifier = Modifier
+            .animateContentSize()
+            .padding(
+                vertical = 8.dp,
+                horizontal = 16.dp
+            ),
         shape = MaterialTheme.shapes.medium,
         colors = if (user.id.toString() == currentUserId.toString()) {
             CardDefaults.cardColors(
@@ -276,7 +283,11 @@ fun PostCard(
                         modifier = Modifier
                             .size(42.dp)
                             .clip(CircleShape),
-                        painter = rememberAsyncImagePainter(user.avatar_url),
+                        painter = if (user.avatar_url != "") {
+                            rememberAsyncImagePainter(user.avatar_url)
+                        } else {
+                            rememberAsyncImagePainter("https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg")
+                        },
                         contentDescription = "user avatar"
                     )
 

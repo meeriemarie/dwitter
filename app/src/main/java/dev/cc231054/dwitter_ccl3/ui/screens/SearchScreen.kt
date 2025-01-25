@@ -1,29 +1,19 @@
 package dev.cc231054.dwitter_ccl3.ui.screens
 
-import android.annotation.SuppressLint
-import android.util.Log
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -39,10 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.cc231054.dwitter_ccl3.data.PostEntity
 import dev.cc231054.dwitter_ccl3.data.UserEntity
 import dev.cc231054.dwitter_ccl3.ui.PostCard
-import dev.cc231054.dwitter_ccl3.ui.PostList
 import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
-import io.github.jan.supabase.realtime.Column
-import io.github.jan.supabase.realtime.PostgresAction
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -59,36 +46,41 @@ fun SearchScreen(
 ) {
 
     val searchText by viewModel.searchText.collectAsState()
-    Column {
-        Column(
-            // More Padding
-            modifier = Modifier.padding(16.dp)
-        ) {
-            TextField(
-                value = searchText,
-                onValueChange = { viewModel.onSearchTextChange(it) },
-                placeholder = { Text("Search for posts") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(6.dp),
-                trailingIcon = {
-                    IconButton(onClick = { viewModel.onToggleSearch() }) {
-                        Icon(
-                            contentDescription = "Search",
-                            imageVector = Icons.Default.Search
-                        )
-                    }
+    val isSearching by viewModel.isSearching.collectAsState()
+
+    Column(
+        modifier = modifier.fillMaxSize()
+    ) {
+        TextField(
+            singleLine = true,
+            value = searchText,
+            onValueChange = { viewModel.onSearchTextChange(it) },
+            placeholder = { Text("Search for posts or usernames") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            trailingIcon = {
+                IconButton(onClick = { viewModel.onToggleSearch() }) {
+                    Icon(
+                        contentDescription = if (isSearching) "Clear Search" else "Search",
+                        imageVector = if (isSearching) Icons.Default.Close else Icons.Default.Search
+                    )
                 }
+            }
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(1f)
+        ) {
+            MainSearch(
+                currentUserId = currentUserId,
+                onNavigate = { onNavigate(it) },
+                users = users,
+                deletePost = { deletePost(it) },
+                viewModel = viewModel
             )
         }
-        Spacer(modifier = Modifier.height(32.dp))
-        MainSearch(
-            currentUserId = currentUserId,
-            onNavigate = { onNavigate(it) },
-            users = users,
-            deletePost = { deletePost(it) },
-            viewModel = viewModel
-        )
     }
 }
 
@@ -136,7 +128,8 @@ fun SearchScreenComponent(
         }
     }
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         items(searchResults, key = { post -> post.id ?: 0 }) { post ->

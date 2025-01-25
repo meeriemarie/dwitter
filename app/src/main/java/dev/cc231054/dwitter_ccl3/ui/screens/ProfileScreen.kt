@@ -4,19 +4,26 @@ import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -90,35 +97,61 @@ fun ProfileScreen(
     editClick: () -> Unit,
     logoutClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
+    Box(
+        modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(bottom = 80.dp)
     ) {
-        ProfileBanner(
-            viewModel = viewModel,
-            modifier = modifier
-        )
-        Spacer(modifier.height(8.dp))
-        EditBtn(
-            navigateToEdit = editClick
-        )
-        Spacer(modifier.height(8.dp))
-        LogoutBtn(
-            onLogOut = logoutClick
-        )
-        Spacer(modifier.height(12.dp))
-        UserPosts(
-            modifier = modifier,
-            currentUserId = currentUserId,
-            onNavigate = { onNavigate(it) },
-            posts = posts,
-            users = users,
-            deletePost = { deletePost(it) },
-            viewModel = viewModel
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            Row(
+                modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ProfileBanner(
+                    viewModel = viewModel
+                )
+                Spacer(modifier.weight(1f))
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = modifier.wrapContentWidth()
+                ) {
+                    EditBtn(
+                        navigateToEdit = editClick
+                    )
+                    Spacer(modifier.height(4.dp))
+                    LogoutBtn(
+                        onLogOut = logoutClick
+                    )
+                }
+            }
+            Row(
+                modifier.padding(4.dp)
+            ) {
+                TextButton(onClick = { }) {
+                    Text("Posts")
+                }
+                TextButton(onClick = {}) {
+                    Text("Favorites")
+                }
+            }
+            Spacer(modifier.height(12.dp))
+            UserPosts(
+                modifier = modifier,
+                currentUserId = currentUserId,
+                onNavigate = { onNavigate(it) },
+                posts = posts,
+                users = users,
+                deletePost = { deletePost(it) },
+                viewModel = viewModel
+            )
+        }
     }
-
 }
 
 
@@ -143,10 +176,14 @@ fun EditBtn(
     navigateToEdit: () -> Unit
 ) {
     Button(
-        onClick = navigateToEdit
+        onClick = navigateToEdit,
+        contentPadding = PaddingValues(2.dp),
+        modifier = Modifier.defaultMinSize(
+            minWidth = ButtonDefaults.MinWidth,
+            minHeight = 28.dp
+        )
     ) {
         Text(text = "Edit Profile")
-        Icon(imageVector = Icons.Filled.Edit, contentDescription = "Edit")
     }
 }
 
@@ -155,13 +192,21 @@ fun LogoutBtn(
     viewModel: UserViewModel = viewModel(),
     onLogOut: () -> Unit
 ) {
-    Button(onClick = {
-        viewModel.logout()
-        onLogOut()
-    }) {
+    Button(
+        onClick = {
+            viewModel.logout()
+            onLogOut()
+        },
+        contentPadding = PaddingValues(2.dp),
+        modifier = Modifier.defaultMinSize(
+            minWidth = 48.dp,
+            minHeight = 24.dp
+        )
+    ) {
         Text(text = "Log Out")
     }
 }
+
 
 @Composable
 fun UserPosts(
@@ -188,7 +233,8 @@ fun UserPosts(
     val userPosts = posts.filter { it.userid == currentUserId }
     Log.i("Profile Screen", posts.size.toString())
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         items(userPosts, key = { post -> post.id ?: 0 }) { post ->
