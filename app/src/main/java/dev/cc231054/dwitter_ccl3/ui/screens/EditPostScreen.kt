@@ -46,7 +46,7 @@ fun EditPostScreen(
         userid = currentUserId,
         created_at = post?.created_at,
         post = postText,
-        image = post?.image,
+        image = post?.image
     )
 
     Column(

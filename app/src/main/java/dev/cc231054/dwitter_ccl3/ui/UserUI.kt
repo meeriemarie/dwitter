@@ -214,7 +214,8 @@ fun PostList(
 
                     },
                     isLiked = likedPosts?.contains(post.id) ?: false,
-                    isFollowed = followedUsers?.contains(user.id) ?: false
+                    isFollowed = followedUsers?.contains(user.id) ?: false,
+                    likedCount = post.likes
                 )
             }
         }
@@ -232,7 +233,8 @@ fun PostCard(
     onLikeClick: () -> Unit,
     onFollowClick: () -> Unit,
     isLiked: Boolean,
-    isFollowed: Boolean
+    isFollowed: Boolean,
+    likedCount: Int?
 ) {
     var showFullText by remember {
         mutableStateOf(false)
@@ -311,7 +313,7 @@ fun PostCard(
                                 fontSize = 16.sp
                             )
                         ) {
-                            append(user.username)
+                            append("@${user.username}")
                         }
                     }
 
@@ -365,7 +367,6 @@ fun PostCard(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-
             if (post.image != null) {
                 Image(
                     modifier = Modifier
@@ -376,15 +377,27 @@ fun PostCard(
                     contentScale = ContentScale.Crop
                 )
             }
-            if (user.id.toString() != currentUserId.toString()) {
-                LikeButton(
-                    onLikeClick = { onLikeClick() },
-                    isAlreadyLiked = isLiked
+            if (post.userid.toString() != currentUserId.toString()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    LikeButton(
+                        onLikeClick = { onLikeClick() },
+                        isAlreadyLiked = isLiked
+                    )
+                    Text(text = "$likedCount")
+                }
+            } else {
+                Text(
+                    text = "${likedCount} like(s)",
+                    modifier = Modifier.padding(16.dp)
                 )
             }
+
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

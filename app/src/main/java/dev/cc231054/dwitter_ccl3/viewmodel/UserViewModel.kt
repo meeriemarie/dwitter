@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.cc231054.dwitter_ccl3.data.FollowingEntity
 import dev.cc231054.dwitter_ccl3.data.LikedPostEntity
 import dev.cc231054.dwitter_ccl3.data.PostEntity
@@ -18,9 +19,11 @@ import dev.cc231054.dwitter_ccl3.utils.SharedPreferenceHelper
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.postgrest.query.Order.*
+import io.github.jan.supabase.postgrest.rpc
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -99,6 +102,37 @@ class UserViewModel : ViewModel() {
         _isSearching.value = !_isSearching.value
         if (!_isSearching.value) {
             onSearchTextChange("")
+        }
+    }
+
+    suspend fun usersLikedPosts(userid: UUID): List<PostEntity> {
+        return supabase.postgrest.rpc(
+            "fetch_liked_posts",
+            mapOf("userid_uuid" to userid.toString())
+        )
+            .decodeList<PostEntity>()
+    }
+
+    /*
+    suspend fun usersLikedPosts(userid: UUID): List<PostEntity> {
+        return supabase.from("posts")
+            .select(Columns.raw("""id, created_at, post, image, userid, liked_posts!inner(userid)"""))
+            {
+                filter {
+                    eq("liked_posts(userid)", userid)
+                }
+            }
+            .decodeList<PostEntity>()
+    }
+     */
+
+    fun countLikes() {
+        viewModelScope.launch {
+            try {
+                supabase.postgrest.rpc("count_likes_for_posts")
+            } catch (e: Exception) {
+                _userState.value = UserState.Error("Error: ${e.message}")
+            }
         }
     }
 
@@ -387,13 +421,19 @@ class UserViewModel : ViewModel() {
 
     suspend fun fetchPosts() {
         try {
+            /*
             val fetchedPosts = supabase.from("posts")
                 .select() {
                     order(
                         column = "id", order = DESCENDING
                     )
                 }
-                .decodeList<PostEntity>()
+                .decodeList<PostEntity>()*/
+            val fetchedPosts = supabase.postgrest.rpc("count_likes_for_post") {
+                order(
+                    column = "id", order = DESCENDING
+                )
+            }.decodeList<PostEntity>();
             _posts.value = fetchedPosts
             _userState.value = UserState.Success("Posts fetched successfully!")
         } catch (e: Exception) {

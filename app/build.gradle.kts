@@ -56,15 +56,16 @@ dependencies {
     val supabase_version = "3.0.3"
     val ktor_version = "3.0.3"
     val lifecycle_version = "2.8.7"
+    val compose_ui_version = "1.7.6"
 
-    implementation ("io.github.jan-tennert.supabase:postgrest-kt:$supabase_version")
-    implementation ("io.github.jan-tennert.supabase:storage-kt:$supabase_version")
-    implementation ("io.github.jan-tennert.supabase:auth-kt:$supabase_version")
-    implementation ("io.github.jan-tennert.supabase:realtime-kt:$supabase_version")
-    implementation ("io.ktor:ktor-client-android:$ktor_version")
-    implementation ("io.ktor:ktor-client-core:$ktor_version")
-    implementation ("io.ktor:ktor-utils:$ktor_version")
-    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+    implementation("io.github.jan-tennert.supabase:postgrest-kt:$supabase_version")
+    implementation("io.github.jan-tennert.supabase:storage-kt:$supabase_version")
+    implementation("io.github.jan-tennert.supabase:auth-kt:$supabase_version")
+    implementation("io.github.jan-tennert.supabase:realtime-kt:$supabase_version")
+    implementation("io.ktor:ktor-client-android:$ktor_version")
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-utils:$ktor_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 
     implementation("androidx.navigation:navigation-compose:2.8.5")
 
@@ -72,7 +73,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:$lifecycle_version")
 
     implementation("io.coil-kt:coil-compose:2.4.0")
-
+    implementation("androidx.compose.material:material-icons-extended:$compose_ui_version")
 
 
 
