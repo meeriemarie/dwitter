@@ -1,6 +1,5 @@
     body {
         counter-reset: h2counter;
-        background-color: azure;
     }
     h1 {
         counter-reset: h2counter;

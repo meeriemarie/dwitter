@@ -4,6 +4,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="stylesheet" type="text/css" href="styles.css"/>
+        <link rel="stylesheet" type="text/css" href="resultStyles.css"/>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Markazi+Text:wght@400..700&display=swap" rel="stylesheet">
@@ -12,11 +13,73 @@
     <body>
         <header>
            <div class="topnav">
-            <a href="index.html"> Documentation </a>
             <a href="https://meeriemarie.github.io/dwitter/concept.html"> Concept </a>
             <a href="https://meeriemarie.github.io/dwitter/test.html"> Test Plan </a>
             <a class="active" href="https://meeriemarie.github.io/dwitter/results.html"> Test Results </a>
-        </header>
-        </div> 
+            <a href="index.html"> Reflection </a>
+            <a href="https://meeriemarie.github.io/dwitter/download.html"> Download </a>
+            </div>
+        </header> 
+        <div class="main">
+            <h1 class="caption">Usability Test Report</h1>
+            
+            <h2 class="subtitle">Overview</h2>
+            <p>In total, we had 5 test persons of different genders and ages. Each person completed five timed tasks. They were then interviewed and lastly completed a SUS survey. The interview questions and tasks can be seen in the Usability Test Plan.</p>
+            
+            <h2 class="subtitle">SUS Scores</h2>
+            <table class="table">
+                <thead>
+                    <tr class="rows">
+                        <th>User</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr class="rows">
+                    <td>User 1</td>
+                    <td>85</td></tr>
+                <tr class="rows">
+                    <td>User 2</td>
+                    <td>72.5</td></tr>
+                <tr class="rows">
+                    <td>User 3</td>
+                    <td>90</td></tr>
+                <tr class="rows">
+                    <td>User 4</td>
+                    <td>80</td></tr>
+                <tr class="rows">
+                    <td>User 5</td>
+                    <td>77.5</td></tr>
+                <tr class="rows">
+                    <th>Overall</th>
+                    <th>81</th>
+                </tr>
+            </tbody>
+            </table>
+            
+            <h2 class="subtitle">Task Completion Times</h2>
+                <img src="./images/TCT_Plot.jpg" alt="Home" style="width: 100%;">
+            
+            <h2 class="subtitle">Major Takeaways from Interviews</h2>
+            <ul class="content">
+                <li>Search functionality needs improvement: Fix scrolling bugs and add a clear way to reset search terms (e.g. replace the search icon with "X").</li>
+                <li>Post order issues: Make sure newly added posts are consistently visible and follow a logical order.</li>
+                <li>Improve user interaction: Add features to view likes, users you follow, and profiles to make the app feel more interactive and social.</li>
+                <li>Simplify account creation: Explain optional fields like the avatar URL and make sure the process is intuitive.</li>
+                <li>Perfect design and layout: Users appreciate the unique design but expect smoother functionality across all main pages.</li>
+            </ul>
+            
+            <h2 class="subtitle">Changes after the Tests</h2>
+            <ul class="content">
+                <li>Ordered posts by their ID, so that the latest post is on top.</li>
+                <li>Created a page to view posts from followed users.</li>
+                <li>Created a page to display all the liked posts.</li>
+                <li>Included image upload for the profile and posts.</li>
+                <li>Added a view in the profile for your own posts.</li>
+                <li>Posts now don’t get cut off at the bottom of the screen.</li>
+                <li>Search function includes a button change on toggle to make it more intuitive.</li>
+                <li>Removed the second button on the sign-up and login page. Instead, there is now a clickable link at the bottom.</li>
+            </ul>
+        </div>
     </body>
 </html>
