@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -39,12 +38,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.pointer.motionEventSpy
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -55,11 +50,9 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import dev.cc231054.dwitter_ccl3.data.PostEntity
 import dev.cc231054.dwitter_ccl3.data.UserEntity
-import dev.cc231054.dwitter_ccl3.ui.EditProfileScreen
 import dev.cc231054.dwitter_ccl3.ui.LoadingComponent
-import dev.cc231054.dwitter_ccl3.ui.PostCard
+import dev.cc231054.dwitter_ccl3.ui.components.PostCard
 import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
-import io.github.jan.supabase.realtime.Column
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -78,6 +71,12 @@ fun ProfileNav(
 
     NavHost(navController = navController, startDestination = "profile") {
         composable("profile") {
+            LaunchedEffect(Unit) {
+                viewModel.fetchUser()
+                viewModel.fetchUsers()
+                viewModel.fetchPosts()
+            }
+
             ProfileScreen(
                 editClick = { navController.navigate("editPage") },
                 logoutClick = { mainNavController.navigate("loginHandler") },
@@ -115,6 +114,11 @@ fun ProfileScreen(
     editClick: () -> Unit
 ) {
     var activeTab by remember { mutableStateOf(ProfileTab.Posts) }
+
+    LaunchedEffect(activeTab) {
+        viewModel.getLikedPosts(currentUserId)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -188,7 +192,7 @@ fun ProfileScreen(
 @Composable
 fun ProfileBanner(
     viewModel: UserViewModel = viewModel(),
-    modifier: Modifier = Modifier,
+    modifier: Modifier,
     editClick: () -> Unit,
     logoutClick: () -> Unit
 ) {
@@ -210,7 +214,8 @@ fun ProfileBanner(
                 } else {
                     rememberAsyncImagePainter("https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg")
                 },
-                contentDescription = "user avatar"
+                contentDescription = "user avatar",
+                contentScale = ContentScale.Crop
             )
             Spacer(modifier.width(4.dp))
             Row {
@@ -374,6 +379,7 @@ fun UserPosts(
         coroutineScope.launch {
             likedPosts = viewModel.getLikedPosts(currentUserId)
             followedUsers = viewModel.getFollowedUsers(currentUserId)
+            viewModel.fetchPosts()
         }
     }
 

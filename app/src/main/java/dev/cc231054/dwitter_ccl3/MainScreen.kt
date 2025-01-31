@@ -1,5 +1,6 @@
 package dev.cc231054.dwitter_ccl3
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +17,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import dev.cc231054.dwitter_ccl3.ui.AddPostButton
+import dev.cc231054.dwitter_ccl3.data.PostEntity
+import dev.cc231054.dwitter_ccl3.ui.components.AddPostButton
 import dev.cc231054.dwitter_ccl3.ui.BottomNavigationBar
 import dev.cc231054.dwitter_ccl3.ui.Screens
 import dev.cc231054.dwitter_ccl3.ui.screens.ContentScreen
@@ -130,7 +132,7 @@ fun MainScreen(
                         currentUserId = currentUserState.id,
                         userViewModel = userViewModel,
                         postId = postId,
-                        upsertPost = { userViewModel.upsertPost(it) },
+                        upsertPost = {post: PostEntity, postImgUri: Uri? ->  userViewModel.upsertPost(post, postImgUri)},
                         onBackButton = { bottomNavController.popBackStack() }
                     )
                 }

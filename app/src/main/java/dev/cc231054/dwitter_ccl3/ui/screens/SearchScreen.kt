@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.cc231054.dwitter_ccl3.data.PostEntity
 import dev.cc231054.dwitter_ccl3.data.UserEntity
-import dev.cc231054.dwitter_ccl3.ui.PostCard
+import dev.cc231054.dwitter_ccl3.ui.components.PostCard
 import dev.cc231054.dwitter_ccl3.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -159,7 +159,7 @@ fun SearchScreenComponent(
                             likedPosts = likedPosts?.filter { it != post.id }
                         } else {
                             viewModel.likePost(post.id!!, currentUserId)
-                            likedPosts = likedPosts?.plus(post.id!!)
+                            likedPosts = likedPosts?.plus(post.id)
                         }
                     },
                     isLiked = likedPosts?.contains(post.id) ?: false,
