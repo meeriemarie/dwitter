@@ -1,5 +1,6 @@
 package dev.cc231054.dwitter_ccl3.data
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 import java.util.UUID
 

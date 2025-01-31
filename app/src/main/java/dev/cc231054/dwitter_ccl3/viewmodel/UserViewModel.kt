@@ -72,7 +72,7 @@ class UserViewModel : ViewModel() {
     private val _searchResults = MutableStateFlow(_posts.value)
     val searchResults = searchText
         .combine(_posts) { text, posts ->
-            if(text.isBlank()) {
+            if (text.isBlank()) {
             }
 
             posts.filter { post ->
@@ -115,9 +115,14 @@ class UserViewModel : ViewModel() {
                     data = buildJsonObject {
                         put("name", userName)
                         put("username", userUsername)
-                        let { if (path != null) {
-                            put("avatar_url", "https://wysgyswdoefgyxubgcdl.supabase.co/storage/v1/object/public/images/userAvatars/$path")
-                        }}
+                        let {
+                            if (path != null) {
+                                put(
+                                    "avatar_url",
+                                    "https://wysgyswdoefgyxubgcdl.supabase.co/storage/v1/object/public/images/userAvatars/$path"
+                                )
+                            }
+                        }
                     }
                 }
                 saveToken(context)
@@ -334,6 +339,15 @@ class UserViewModel : ViewModel() {
         }
     }
 
+
+    suspend fun getFollowedPosts(userid: UUID): List<PostEntity> {
+        return supabase.postgrest.rpc(
+            "get_followed_posts",
+            mapOf("user_id" to userid.toString())
+        )
+            .decodeList<PostEntity>()
+    }
+
     // Profile functions
     fun updateProfile(
         userName: String,
@@ -351,9 +365,14 @@ class UserViewModel : ViewModel() {
                     supabase.from("profiles").update({
                         set("name", userName)
                         set("username", userUsername)
-                        let { if (path != null) {
-                            set("avatar_url", "https://wysgyswdoefgyxubgcdl.supabase.co/storage/v1/object/public/images/userAvatars/$path")
-                        }}
+                        let {
+                            if (path != null) {
+                                set(
+                                    "avatar_url",
+                                    "https://wysgyswdoefgyxubgcdl.supabase.co/storage/v1/object/public/images/userAvatars/$path"
+                                )
+                            }
+                        }
                     }) {
                         filter {
                             eq("id", userId)
@@ -396,7 +415,7 @@ class UserViewModel : ViewModel() {
         return try {
             avatarUri?.let {
                 val path = "$userEmail - ${System.currentTimeMillis()}"
-                supabase.storage.from("images/userAvatars").upload(path, it){
+                supabase.storage.from("images/userAvatars").upload(path, it) {
                     upsert = true
                     contentType = ContentType.Image.JPEG
                 }
@@ -417,7 +436,7 @@ class UserViewModel : ViewModel() {
         return try {
             postImgUri?.let {
                 val path = "$postId - ${System.currentTimeMillis()}"
-                supabase.storage.from("images/postImages").upload(path, it){
+                supabase.storage.from("images/postImages").upload(path, it) {
                     upsert = true
                     contentType = ContentType.Image.JPEG
                 }
