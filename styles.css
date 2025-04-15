@@ -8,6 +8,7 @@
   overflow: hidden;
   font-family: "DM Serif Text", serif;
   position: sticky;
+  top: 0;
 }
 
 /* Style the links inside the navigation bar */

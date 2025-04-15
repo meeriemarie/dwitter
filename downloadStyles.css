@@ -28,3 +28,19 @@ h2:before {
     margin-top: 3vh;
     font-size:x-large;
 }
+
+.column {
+    display: inline-block;
+    width: 31%;
+    padding: 5px;
+  }
+  
+  .row::after {
+    content: "";
+    clear: both;
+    display: table;
+  }
+
+  .image {
+    padding: 5px;
+  }
